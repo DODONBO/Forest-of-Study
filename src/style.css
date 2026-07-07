@@ -29,3 +29,16 @@ body { background-color: var(--bg-color); }
 .btn svg.shadow { top: -3px; }
 .btn span { position: absolute; display: block; left: 50%; transform: translate(-50%, -3px); width: fit-content; color: var(--wh); font-family: 'JejuStoneWall'; font-size: 18px; }
 .btn span.shadow { transform: translate(-50%, -6px); color: var(--green-text); }
+
+.card_container { width: 100%; height: fit-content; padding: 40px; border-radius: 20px; background-color: var(--wh); margin: 40px 0; }
+.container_title { display: block; color: var(--black); font-family: Pretendard; font-size: 24px; font-weight: 800; margin-bottom: 30px; }
+
+.card_wrap { display: flex; flex-direction: row; justify-content: space-between; gap: 24px; }
+.card { width: 100%; padding: 30px; background-color: var(--dark-gray); border-radius: 20px; }
+.card_title_wrap { display: flex; flex-direction: row; justify-content: space-between; margin-bottom: 10px; }
+.card_title { color: var(--wh); font-size: 18px; font-weight: 700; }
+.tag_wrap { display: flex; flex-direction: row; justify-content: left; gap: 5px; }
+.tag { display: flex; flex-direction: row; justify-content: space-between; gap: 4px; align-items: center; width: fit-content; height: 22px; padding: 4px 10px; border-radius: 50px; color: #FFF; font-size: 12px; font-weight: 500; border: 1px solid rgba(0, 0, 0, 0.10); background: rgba(0, 0, 0, 0.50); }
+.tag img { display: inline-block; height: 14px; }
+.card_status { display: block; color: var(--light-gray); font-size: 14px; font-weight: 400; margin-bottom: 30px; }
+.card_text { height: 48px; color: var(--wh); font-size: 16px; font-weight: 400; line-height: 24px; margin-bottom: 30px; }
