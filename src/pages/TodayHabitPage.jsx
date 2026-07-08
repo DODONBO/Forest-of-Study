@@ -1,6 +1,10 @@
-import HabitList from "../components/habit/HabitList"
+import HabitList from "../components/habit/HabitList.jsx"
+import HabitEditModal from "../components/habit/HabitEditModal.jsx"
+import { useState } from "react"
 
 function TodayHabitPage() {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
   const habits = [
     { id: 1, name: '매일매일 6시 기상', isChecked: true },
     { id: 2, name: '아침 챙겨 먹기', isChecked: false },
@@ -10,8 +14,20 @@ function TodayHabitPage() {
   return (
     <div>
       <h1>오늘의 습관</h1>
-      <button type='button'>목록 수정</button>
+      <button 
+        type='button' 
+        onClick={() => setIsEditModalOpen(true)}
+      >
+        목록 수정
+      </button>
       <HabitList habits={habits}/>
+
+      {isEditModalOpen && (
+        <HabitEditModal 
+         habits={habits}
+         onClose={() => setIsEditModalOpen(false)}
+         />
+      )}
     </div>
   )
 }
