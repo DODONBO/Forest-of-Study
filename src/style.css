@@ -35,7 +35,11 @@ body { background-color: var(--bg-color); }
 
 /* 카드 형태 */
 .card_container { width: 100%; height: fit-content; padding: 40px; border-radius: 20px; background-color: var(--wh); margin: 40px 0; }
+.card_container.inner_container { border: 1px solid var(--gray); }
+.card_container.inner_container .inner { position: relative; max-width: 400px; }
 .container_title { display: block; color: var(--black); font-family: Pretendard; font-size: 24px; font-weight: 800; margin-bottom: 30px; }
+.card_container.inner_container .container_title { text-align: center; }
+
 .card_wrap { display: flex; flex-direction: row; justify-content: space-between; gap: 24px; }
 .card { width: 100%; padding: 30px; background-color: var(--dark-gray); border-radius: 20px; cursor: pointer; }
 .card_title_wrap { display: flex; flex-direction: row; justify-content: space-between; margin-bottom: 10px; }
@@ -59,3 +63,20 @@ body { background-color: var(--bg-color); }
 .input_wrap input { width: 100%; height: fit-content; line-height: 24px; padding: 13px 21px; border: 1px solid var(--gray); border-radius: 15px; }
 .modal_btn { width: 100% !important; margin: 0 auto; }
 .modal_btn svg { width: 100%; height: 53px; }
+
+/* habit */
+.habit_wrap { display: flex; flex-direction: column; justify-content: start; gap: 20px; }
+.habit_btn { display: block; width: 100%; height: 54px; border-radius: 20px; bordeR: none; background-color: var(--light-gray); color: var(--black); cursor: pointer; }
+.edit_habit_btn { position: absolute; right: 0; top: 0; }
+
+.edit_habit_modal .inner { max-width: 400px; }
+.edit_habit_modal .modal_title { margin-bottom: 24px; }
+.edit_habit_modal .habit_wrap { margin-bottom: 20px; }
+.habit_line { display: flex; flex-direction: row; justify-content: space-between; gap: 8px; }
+.edit_habit_modal .habit_btn { text-align: center; line-height: 48px; }
+.delete_habit_btn { width: fit-content; height: fit-content; padding: 12px; border-radius: 100%; background-color: var(--pink); border: none; }
+.delete_habit_btn img { display: block; width: 24px; height: 24px; }
+
+.modal_btn_wrap { display: flex; flex-direction: row; justify-content: space-between; gap: 24px; margin-top: 24px; }
+.modal_btn_wrap button { width: 50%; height: 58px; padding: 10px; justify-content: center; align-items: center; border: none; background-color: var(--gray); color: var(--wh); font-family: 'JejuStoneWall'; font-size: 18px; border-radius: 16px; cursor: pointer; }
+.modal_btn_wrap button.green { background-color: var(--brand); }

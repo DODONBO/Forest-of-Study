@@ -11,7 +11,7 @@ function HabitList({ habits = [] }) {
   }
   
   return (
-    <div>
+    <div className="habit_wrap">
       {habits.map((habit) => (
         <HabitItem 
           key={habit.id}
