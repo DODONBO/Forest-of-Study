@@ -18,25 +18,27 @@ function TodayHabitPage() {
   }
 
   return (
-    <div>
-      <h1>오늘의 습관</h1>
-      <button 
-        type="button" 
-        onClick={() => setIsEditModalOpen(true)}
-      >
-        목록 수정
-      </button>
-      <HabitList habits={habits}/>
+    <section>
+      <div className="inner">
+        <h1>오늘의 습관</h1>
+        <button 
+          type="button" 
+          onClick={() => setIsEditModalOpen(true)}
+        >
+          목록 수정
+        </button>
+        <HabitList habits={habits}/>
 
-      {isEditModalOpen && (
-        <HabitEditModal 
-         habits={habits}
-         onClose={() => setIsEditModalOpen(false)}
-         onSave={handleSaveHabits}
-         />
-      )}
-    </div>
-  )
+        {isEditModalOpen && (
+          <HabitEditModal 
+          habits={habits}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveHabits}
+          />
+        )}
+      </div>
+    </section>
+  );
 }
 
 export default TodayHabitPage
