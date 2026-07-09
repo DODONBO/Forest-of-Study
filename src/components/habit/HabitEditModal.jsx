@@ -1,27 +1,25 @@
 import { useState } from 'react'
 import trashIcon from '../../assets/img/ic_trash.svg'
+import axios from '../../utils/axios'
+import { useParams } from 'react-router-dom';
 
 function HabitEditModal({ habits, onClose, onSave }) {
+  const { id } = useParams();
   const [editHabits, setEditHabits] = useState(habits)
   const [newHabitName, setNewHabitName] = useState('')
 
-  const handleAddHabit = (e) => {
+  const handleAddHabit = async (e) => {
     e.preventDefault()
 
     if (newHabitName.trim() === '') return
 
     const newHabit = {
-      id: Date.now(),
       name: newHabitName,
       isChecked: false,
     }
 
-    setEditHabits((prevHabits) => [...prevHabits, newHabit])
-    setNewHabitName('')
-  }
-
-  const handleSubmit = () => {
-    onSave(editHabits)
+    const response = await axios.post(`/studies/${id}/habits`, newHabit);
+    onSave(editHabits);
   }
 
   return (
@@ -61,7 +59,7 @@ function HabitEditModal({ habits, onClose, onSave }) {
               취소
             </button>
 
-            <button type="button" onClick={handleSubmit} className='green'>
+            <button type="submit" className='green'>
               수정 완료
             </button>
           </div>

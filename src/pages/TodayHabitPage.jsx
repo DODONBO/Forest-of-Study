@@ -1,21 +1,25 @@
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "../utils/axios.js";
 import HabitList from "../components/habit/HabitList.jsx";
 import HabitEditModal from "../components/habit/HabitEditModal.jsx";
 
 function TodayHabitPage() {
+  const { id } = useParams();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [study, setStudy] = useState([]);
-  const [habits, setHabits] = useState([
-    { id: 1, name: "매일매일 6시 기상", isChecked: true },
-    { id: 2, name: "아침 챙겨 먹기", isChecked: false },
-    { id: 3, name: "물 2L 마시기", isChecked: false },
-  ]);
+  const [habits, setHabits] = useState([]);
 
-  const handleSaveHabits = (newHabits) => {
-    setHabits(newHabits);
+  const handleLoad = async () => {
+    const response = await axios.get(`/studies/${id}/habits`);
+
+    setHabits(response.data);
     setIsEditModalOpen(false);
   };
+
+  useEffect(() => {
+    handleLoad();
+  },[]);
 
   return (
     <section>
@@ -41,7 +45,7 @@ function TodayHabitPage() {
                 <HabitEditModal
                   habits={habits}
                   onClose={() => setIsEditModalOpen(false)}
-                  onSave={handleSaveHabits}
+                  onSave={handleLoad}
                 />
       )}
     </section>
