@@ -22,6 +22,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard'; }
 body { background-color: var(--bg-color); }
 .inner { width: 1200px; margin: 0 auto; }
+input:focus { outline-color: var(--brand); }
 
 /* 헤더 */
 #header .inner { display: flex; flex-direction: row; justify-content: space-between; width: calc(100vw - 440px); height: 100px; padding: 20px 0; }
@@ -75,9 +76,12 @@ body { background-color: var(--bg-color); }
 .modal_title.left { text-align: left; }
 .edit_habit_modal .habit_wrap { margin-bottom: 20px; }
 .habit_line { display: flex; flex-direction: row; justify-content: space-between; gap: 8px; }
-.edit_habit_modal .habit_btn { text-align: center; line-height: 48px; }
+.edit_habit_modal .habit_btn { height: 48px; text-align: center; line-height: 48px; font-size: 16px; font-weight: 700; text-decoration-line: underline; color: var(--dark-gray); }
 .delete_habit_btn { width: fit-content; height: fit-content; padding: 12px; border-radius: 100%; background-color: var(--pink); border: none; cursor: pointer; }
 .delete_habit_btn img { display: block; width: 24px; height: 24px; }
+.edit_habit_modal form { display: flex; flex-direction: row; justify-content: space-between; gap: 8px; }
+.edit_habit_modal input { display: block; width: calc(100% - 56px); height: 54px; padding: 6px 20px; border-radius: 20px; border: 1px solid var(--gray); color: var(--black); cursor: pointer; text-align: center; }
+.edit_habit_modal form button { width: 48px !important; height: 48px; padding: 12px; border-radius: 100%; background-color: var(--blue); border: none; cursor: pointer; }
 
 .modal_btn_wrap { display: flex; flex-direction: row; justify-content: space-between; gap: 24px; margin-top: 24px; }
 .modal_btn_wrap button { width: 50%; height: 58px; padding: 10px; justify-content: center; align-items: center; border: none; background-color: var(--gray); color: var(--wh); font-family: 'JejuStoneWall'; font-size: 18px; border-radius: 16px; cursor: pointer; }

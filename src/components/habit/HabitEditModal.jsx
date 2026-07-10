@@ -14,7 +14,7 @@ function HabitEditModal({ habits, onClose, onSave }) {
     if (!confirm("습관을 삭제하시겠습니까?")) return;
 
     try {
-      await axios.delete(`/habit/${habitId}/`);
+      await axios.delete(`/study/${id}/habit/${habitId}/`);
       alert("삭제되었습니다.");
       onSave();
       
@@ -30,13 +30,30 @@ function HabitEditModal({ habits, onClose, onSave }) {
     if (newHabitName.trim() === '') return
 
     const newHabit = {
+      id: null,
       name: newHabitName,
       isChecked: false,
     }
+    setEditHabits([...editHabits, newHabit]);
+    setNewHabitName('');
+  }
 
-    const response = await axios.post(`/study/${id}/habit`, newHabit);
+  const saveUpdatedHabits = async (e) => {
+    e.preventDefault();
+
+    const response = await axios.patch(`/study/${id}/habit`, editHabits);
     onSave();
   }
+
+  const handleHabitNameChange = (id, value) => {
+    setEditHabits((prev) =>
+      prev.map((habit) =>
+        habit.id === id
+          ? { ...habit, name: value }
+          : habit
+      )
+    );
+  };
 
   return (
     <div className="modal_wrap">
@@ -49,7 +66,7 @@ function HabitEditModal({ habits, onClose, onSave }) {
             ) : (
               editHabits.map((habit) => (
                 <div key={habit.id} className='habit_line'>
-                  <span className='habit_btn'>{habit.name}</span>
+                  <input className='habit_btn' value={habit.name} onChange={(e) => handleHabitNameChange(habit.id, e.target.value)} />
                   <div className='delete_habit_btn' onClick={(e) => {deleteHabit(e, habit.id)}}>
                     <img src={trashIcon} alt="삭제 아이콘" />
                   </div>
@@ -75,7 +92,7 @@ function HabitEditModal({ habits, onClose, onSave }) {
               취소
             </button>
 
-            <button type="submit" className='green'>
+            <button type="button" className='green' onClick={(e) => saveUpdatedHabits(e)}>
               수정 완료
             </button>
           </div>
