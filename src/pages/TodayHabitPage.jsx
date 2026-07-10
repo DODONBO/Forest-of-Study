@@ -37,7 +37,7 @@ function TodayHabitPage() {
               >
                 목록 수정
               </button>
-              <HabitList habits={habits} />
+              <HabitList habits={habits} handleLoad={handleLoad}/>
             </div>
           </div>
           <WeeklyHabitRecordTable habits={habits}/>

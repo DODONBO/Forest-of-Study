@@ -1,8 +1,8 @@
 import axios from "../../utils/axios";
 
-function HabitItem({ habit, habits, studyId }) {
-  const patchHabit = async (habitId, data) => {
-    const response = await axios.patch(`/study/${studyId}/habit/${habitId}`, data);
+function HabitItem({ habit, habits, studyId, handleLoad }) {
+  const toggleCheck = async (habitId, data) => {
+    const response = await axios.patch(`/study/${studyId}/habit/${habitId}/record`);
    
     return response.data;
   };
@@ -11,15 +11,11 @@ function HabitItem({ habit, habits, studyId }) {
     try {
       const targetHabit = habits.find((habit) => habit.id === habitId);
 
-      const response = await patchHabit(habitId, {
+      const response = await toggleCheck(habitId, {
         isChecked: !targetHabit.isChecked,
       });
 
-      setHabits((prevHabits) =>
-        prevHabits.map((habit) =>
-          habit.id === habitId ? response : habit
-        )
-      );
+      handleLoad();
     } catch (error) {
       console.error(error);
     }
@@ -28,7 +24,7 @@ function HabitItem({ habit, habits, studyId }) {
   return (
     <button
       type='button'
-      className={`habit_btn ${habit.isChecked ? "checked" : ""}`}
+      className={`habit_btn ${habit.habitRecords[0] && habit.habitRecords[0].isChecked ? "checked" : ""}`}
       onClick={() => toggleHabit(habit.id)}>
       <p>{habit.name}</p>
     </button>
