@@ -16,6 +16,7 @@ function HabitList({ habits = [] }) {
         <HabitItem 
           key={habit.id}
           habit={habit}
+          habits={habits}
         />
       ))}
     </div>

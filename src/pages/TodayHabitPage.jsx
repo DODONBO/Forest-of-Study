@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "../utils/axios.js";
 import HabitList from "../components/habit/HabitList.jsx";
 import HabitEditModal from "../components/habit/HabitEditModal.jsx";
+import WeeklyHabitRecordTable from "../components/habit/WeeklyHabitRecordTable.jsx";
 
 function TodayHabitPage() {
   const { id } = useParams();
@@ -39,6 +40,7 @@ function TodayHabitPage() {
               <HabitList habits={habits} />
             </div>
           </div>
+          <WeeklyHabitRecordTable habits={habits}/>
         </div>
       </div>
       {isEditModalOpen && (
@@ -46,6 +48,7 @@ function TodayHabitPage() {
                   habits={habits}
                   onClose={() => setIsEditModalOpen(false)}
                   onSave={handleLoad}
+                  studyId={id}
                 />
       )}
     </section>
