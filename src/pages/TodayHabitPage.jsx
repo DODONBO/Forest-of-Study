@@ -20,7 +20,7 @@ function TodayHabitPage() {
 
   useEffect(() => {
     handleLoad();
-  },[]);
+  }, []);
 
   return (
     <section>
@@ -40,7 +40,7 @@ function TodayHabitPage() {
               <HabitList habits={habits} handleLoad={handleLoad}/>
             </div>
           </div>
-          <WeeklyHabitRecordTable habits={habits}/>
+          <WeeklyHabitRecordTable habits={habits} studyId={id}/>
         </div>
       </div>
       {isEditModalOpen && (
