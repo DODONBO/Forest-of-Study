@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import selectedIcon from '../assets/img/ic_bg_selected.png';
 import './StudyCreatePage.css';
 
+const API_BASE_URL = 'http://127.0.0.1:3000';
+
 const backgroundOptions = [
   { id: 'green', type: 'color', value: '#E1EDDE', className: 'study-create-bg-green' },
   { id: 'yellow', type: 'color', value: '#FFF1CC', className: 'study-create-bg-yellow' },
@@ -24,6 +26,24 @@ const initialErrors = {
 const NOTICE_VISIBLE_DURATION = 3200;
 const NOTICE_FADE_DURATION = 400;
 
+const getStudyCreateErrorMessage = async (response) => {
+  try {
+    const result = await response.json();
+
+    return result?.error?.message || result?.message || '스터디 생성에 실패했습니다.';
+  } catch {
+    return '스터디 생성에 실패했습니다.';
+  }
+};
+
+const normalizeSubmitErrorMessage = (error) => {
+  if (error.message === 'Failed to fetch') {
+    return '서버에 연결할 수 없습니다. 백엔드 서버를 확인해주세요.';
+  }
+
+  return error.message || '스터디 생성에 실패했습니다.';
+};
+
 function StudyCreatePage() {
   const [selectedBackground, setSelectedBackground] = useState(backgroundOptions[0].id);
   const [visiblePasswords, setVisiblePasswords] = useState({
@@ -31,6 +51,8 @@ function StudyCreatePage() {
     passwordConfirm: false,
   });
   const [errors, setErrors] = useState(initialErrors);
+  const [submitErrorMessage, setSubmitErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successNoticeStatus, setSuccessNoticeStatus] = useState('hidden');
   const isSuccessNoticeOpen = successNoticeStatus !== 'hidden';
 
@@ -61,6 +83,8 @@ function StudyCreatePage() {
   };
 
   const clearErrors = (...fieldNames) => {
+    setSubmitErrorMessage('');
+
     setErrors((prevErrors) => {
       const nextErrors = { ...prevErrors };
 
@@ -79,7 +103,7 @@ function StudyCreatePage() {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const form = event.currentTarget;
@@ -102,17 +126,51 @@ function StudyCreatePage() {
     }
 
     setErrors(nextErrors);
+    setSubmitErrorMessage('');
 
     if (Object.values(nextErrors).some(Boolean)) {
       closeSuccessNotice();
       return;
     }
 
-    form.reset();
-    setErrors(initialErrors);
-    setSelectedBackground(backgroundOptions[0].id);
-    setVisiblePasswords({ password: false, passwordConfirm: false });
-    setSuccessNoticeStatus('visible');
+    const selectedBackgroundOption = (
+      backgroundOptions.find((option) => option.id === selectedBackground) ?? backgroundOptions[0]
+    );
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/study`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nickname,
+          name: studyName,
+          description,
+          backgroundType: selectedBackgroundOption.type,
+          backgroundValue: selectedBackgroundOption.value,
+          password,
+          passwordConfirmation: passwordConfirm,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await getStudyCreateErrorMessage(response));
+      }
+
+      form.reset();
+      setErrors(initialErrors);
+      setSelectedBackground(backgroundOptions[0].id);
+      setVisiblePasswords({ password: false, passwordConfirm: false });
+      setSuccessNoticeStatus('visible');
+    } catch (error) {
+      closeSuccessNotice();
+      setSubmitErrorMessage(normalizeSubmitErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -140,6 +198,12 @@ function StudyCreatePage() {
         <form className="study-create-form" onSubmit={handleSubmit} noValidate>
           <div className="study-create-content">
             <h1 id="study-create-title">스터디 만들기</h1>
+
+            {submitErrorMessage && (
+              <p className="study-create-submit-error" role="alert">
+                {submitErrorMessage}
+              </p>
+            )}
 
             <div className="study-create-field">
               <label htmlFor="nickname">닉네임</label>
@@ -288,7 +352,9 @@ function StudyCreatePage() {
             </div>
           </div>
 
-          <button className="study-create-submit" type="submit">만들기</button>
+          <button className="study-create-submit" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? '만드는 중' : '만들기'}
+          </button>
         </form>
       </section>
     </main>

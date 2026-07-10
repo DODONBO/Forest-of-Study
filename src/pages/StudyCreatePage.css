@@ -222,6 +222,16 @@
   line-height: 17px;
 }
 
+.study-create-submit-error {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--red--error-bg);
+  color: var(--red-error);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
 .study-create-background {
   min-width: 0;
   margin: 0;
@@ -358,6 +368,11 @@
   line-height: 38px;
   text-shadow: 0 3px 0 var(--green-text);
   cursor: pointer;
+}
+
+.study-create-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .study-create-submit:focus {
