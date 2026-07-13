@@ -8,6 +8,8 @@ export default function FocusTimer({ studyId, password }) {
     const [settingMinutes, setSettingMinutes] = useState(25);  // 설정한 분
     const [settingSeconds, setSettingSeconds] = useState(0);   // 설정한 초
     const [isEditing, setIsEditing] = useState(false);         // 수정할 때 쓴 거 
+    const [completeMessage, setCompleteMessage] = useState('');  // 0초 도달 축하
+    const [resultMessage, setResultMessage] = useState('');      // 정지 후 포인트 결과
 
     const totalSettingSeconds = settingMinutes * 60 + settingSeconds;
     const remainingSeconds = totalSettingSeconds - elapsedSeconds;
@@ -26,6 +28,12 @@ export default function FocusTimer({ studyId, password }) {
         };
     }, [isRunning]);
 
+    useEffect(() => {
+        if (isRunning && remainingSeconds === 0) {
+            setCompleteMessage('🎉 목표 시간을 다 채웠어요! 계속 집중하면 추가 포인트를 받아요.');
+        }
+    }, [remainingSeconds, isRunning]);
+
     function formatTime(totalSeconds) {
         const isNegative = totalSeconds < 0;
         const abs = Math.abs(totalSeconds);
@@ -42,12 +50,14 @@ export default function FocusTimer({ studyId, password }) {
     }
 
     function handleStart() {
+        setCompleteMessage('');   // 새로 시작하면 이전 메시지 지우기
+        setResultMessage('');
         setIsRunning(true);
         setIsStarted(true);
     }
 
     function handlePause() {
-        setIsRunning(false);   // 멈추지만 경과 시간은 유지 → 다시 시작하면 이어짐
+        setIsRunning(false);   // 멈추지만 경과 시간은 유지
     }
 
     function handleResume() {
@@ -55,13 +65,25 @@ export default function FocusTimer({ studyId, password }) {
     }
 
     async function handleFinish() {
+        // 설정한 시간을 다 채웠는지 확인
+        const isCompleted = elapsedSeconds >= totalSettingSeconds;
+
+        if (!isCompleted) {
+            // 포인트 전송 없이 초기화만, 여기에 중도 정지 토스트를 넣으면 될 것 같아요
+            setResultMessage('시간을 다 채우지 못해 포인트가 지급되지 않았어요.');
+            handleReset();
+            return;
+        }
+
+        // 여기부터는 완료한 경우만
         const point = calculatePoint(elapsedSeconds);
+        console.log('획득포인트', point);
 
         try {
             const res = await fetch(`http://localhost:3000/study/${studyId}/focus/point`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 'password': password, 'point': point }),
+                body: JSON.stringify({ password, point }),
             });
 
             const data = await res.json();
@@ -71,11 +93,12 @@ export default function FocusTimer({ studyId, password }) {
                 return;
             }
 
-            // 성공했을 때
-            console.log(data);
+            console.log('집중 성공:', data);
+            setCompleteMessage('');
+            setResultMessage(`🎉 ${point}포인트를 획득했어요!`);
 
         } catch (error) {
-            console.error(error);
+            console.error('전송 실패:', error);
         }
 
         handleReset();
@@ -135,6 +158,17 @@ export default function FocusTimer({ studyId, password }) {
                     {formatTime(remainingSeconds)}
                 </div>
             )}
+
+            {/* 여기서부터 모달 창이에요 확인하려고 그려놨는데 바꾸셔도 됩니다 */}
+
+            {completeMessage && (
+                <div className="focus-timer__message">{completeMessage}</div>
+            )}
+            {resultMessage && (
+                <div className="focus-timer__message focus-timer__message--result">{resultMessage}</div>
+            )}
+
+            {/* 여기서부터 모달 끝 */}
 
             <div className="focus-timer__buttons">
                 {!isStarted ? (
