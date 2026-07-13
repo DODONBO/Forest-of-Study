@@ -53,13 +53,31 @@ const getCardStyle = (study) => {
         }
       : {};
   }
-  return { backgroundColor: backgroundColorEnum[study.backgroundValue] };
+  return { backgroundColor: study.backgroundValue };
 };
+
+const getNicknameStyle = (study) => {
+  const color = study.backgroundValue;
+
+  if (color === 'GREEN' || color === '#E1EDDE') {
+    return { color: '#578246' };
+
+  } else if (color === 'YELLOW' || color === '#FFF1CC') {
+    return { color: '#C18E1B' };
+
+  } else if ( color === 'BLUE' || color === '#E0F1F5') {
+    return { color: '#418099' };
+
+  } else if ( color === 'PINK' || color === '#FDE0E9') {
+    return { color: '#BC3C6A' };
+  }
+}
 
 function StudyCard({ study }) {
   const navigate = useNavigate();
   const emojis = getStudyEmojis(study);
   const cardstyle = getCardStyle(study);
+  const nicknameStyle = getNicknameStyle(study);
 
   const handleClick = () => {
     addRecentStudy(study);
@@ -73,7 +91,7 @@ function StudyCard({ study }) {
       }
       <div className="card_title_wrap">
         <span className="card_title">
-          <span className={study.backgroundValue}>{study.nickname} </span>의 {study.name}</span>
+          <span style={nicknameStyle}>{study.nickname} </span>의 {study.name}</span>
         <div className="tag point_tag">
           <img src={tagImg} alt="태그 장식" />
           {getStudyPoint(study)}
