@@ -7,7 +7,12 @@ import { modalType } from "../../utils/enum/modalTypeEnum";
 
 function HabitEditModal({ habits, onClose, onSave }) {
   const { id } = useParams();
-  const [editHabits, setEditHabits] = useState(habits);
+  const [editHabits, setEditHabits] = useState(() => 
+    habits.map((habit) => ({
+      ...habit,
+      localId: habit.id,
+    })),
+  );
   const [newHabitName, setNewHabitName] = useState("");
   const [popup, setPopup] = useState({
     isOpen: false,
@@ -74,8 +79,11 @@ function HabitEditModal({ habits, onClose, onSave }) {
 
     if (newHabitName.trim() === "") return;
 
+    // 이름 수정할 때 id를 대상으로 찾고 있기 때문에
+    // 새로 만들어진 습관의 id는 모두 null이라서 함께 이름이 수정됨
     const newHabit = {
       id: null,
+      localId: crypto.randomUUID(),
       name: newHabitName,
       isChecked: false,
     };
@@ -90,10 +98,10 @@ function HabitEditModal({ habits, onClose, onSave }) {
     onSave();
   };
 
-  const handleHabitNameChange = (id, value) => {
+  const handleHabitNameChange = (localId, value) => {
     setEditHabits((prev) =>
       prev.map((habit) =>
-        habit.id === id ? { ...habit, name: value } : habit,
+        habit.localId === localId ? { ...habit, name: value } : habit,
       ),
     );
   };
@@ -108,12 +116,12 @@ function HabitEditModal({ habits, onClose, onSave }) {
               <p>아직 습관이 없어요</p>
             ) : (
               editHabits.map((habit) => (
-                <div key={habit.id} className="habit_line">
+                <div key={habit.localId} className="habit_line">
                   <input
                     className="habit_btn"
                     value={habit.name}
                     onChange={(e) =>
-                      handleHabitNameChange(habit.id, e.target.value)
+                      handleHabitNameChange(habit.localId, e.target.value)
                     }
                   />
                   <div
