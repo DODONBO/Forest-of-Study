@@ -51,20 +51,32 @@ function HabitEditModal({ habits, onClose, onSave }) {
     });
   };
 
-  const openDeletePopup = (e, habitId) => {
+  // 임시 습관의 localId도 필요하기 때문에 습관 객체 전체를 받음
+  const openDeletePopup = (e, habit) => {
     e.stopPropagation();
 
     openConfirm("삭제하시겠습니까?", () => {
-      deleteHabit(habitId);
+      deleteHabit(habit);
     });
   };
 
-  const deleteHabit = async (habitId) => {
+  const deleteHabit = async (habit) => {
+    // DB에 저장되지 않은 임시 습관
+    if (!habit.id) {
+      setEditHabits((prev) => 
+        prev.filter((item) => item.localId !== habit.localId),
+      );
+
+      openAlert("삭제되었습니다.");
+      return;
+    }
+
+    // DB에 저장된 기존 습관
     try {
-      await axios.delete(`/study/${id}/habit/${habitId}/`);
+      await axios.delete(`/study/${id}/habit/${habit.id}/`);
       // 삭제된 항목만 모달 목록에서 사라지도록
       setEditHabits((prev) => 
-        prev.filter((habit) => habit.id !== habitId),
+        prev.filter((item) => item.localId !== habit.localId),
       );
       // 기존 습관 하나를 삭제해도 handleLoad가 호출되지 않아 모달이 닫히지 않음
       openAlert("삭제되었습니다.");
@@ -81,6 +93,7 @@ function HabitEditModal({ habits, onClose, onSave }) {
 
     // 이름 수정할 때 id를 대상으로 찾고 있기 때문에
     // 새로 만들어진 습관의 id는 모두 null이라서 함께 이름이 수정됨
+    // (3번) 새 습관은 실제 DB에 id가 없기 때문에(null) 삭제할 때 id 존재 여부로 처리 방식 나누기
     const newHabit = {
       id: null,
       localId: crypto.randomUUID(),
@@ -126,7 +139,7 @@ function HabitEditModal({ habits, onClose, onSave }) {
                   />
                   <div
                     className="delete_habit_btn"
-                    onClick={(e) => openDeletePopup(e, habit.id)}
+                    onClick={(e) => openDeletePopup(e, habit)}
                   >
                     <img src={trashIcon} alt="삭제 아이콘" />
                   </div>
