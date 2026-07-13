@@ -11,6 +11,11 @@ function TodayHabitPage() {
   const [study, setStudy] = useState([]);
   const [habits, setHabits] = useState([]);
 
+  const loadStudy = async () => {
+    const response = await axios.get(`/study/${id}`);
+    setStudy(response.data.data);
+  }
+
   const handleLoad = async () => {
     const response = await axios.get(`/study/${id}/habit`);
 
@@ -19,6 +24,7 @@ function TodayHabitPage() {
   };
 
   useEffect(() => {
+    loadStudy();
     handleLoad();
   }, []);
 
@@ -26,7 +32,7 @@ function TodayHabitPage() {
     <section>
       <div className="inner">
         <div className="card_container">
-          <span className="container_title">스터디 이름</span>
+          <span className="container_title">{study.name}</span>
           <div>
             <Link to={`study/${id}/focus`}>오늘의 집중</Link>
             <Link to={"/"}>홈</Link>
