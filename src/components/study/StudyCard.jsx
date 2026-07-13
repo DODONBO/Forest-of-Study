@@ -5,6 +5,7 @@ import bgDesk from "../../assets/img/bg_create_desk.svg";
 import bgWindow from "../../assets/img/bg_create_window.svg";
 import bgTiles from "../../assets/img/bg_create_tiles.svg";
 import bgLeaves from "../../assets/img/bg_create_leaves.svg";
+import { backgroundColorEnum } from "../../utils/enum/colorEnum";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -52,7 +53,7 @@ const getCardStyle = (study) => {
         }
       : {};
   }
-  return { backgroundColor: study.backgroundValue };
+  return { backgroundColor: backgroundColorEnum[study.backgroundValue] };
 };
 
 function StudyCard({ study }) {
@@ -66,9 +67,13 @@ function StudyCard({ study }) {
   };
 
   return (
-    <div className="card" style={cardstyle} onClick={handleClick}>
+    <div className={study.backgroundType + ' card'} style={cardstyle} onClick={handleClick}>
+      {study.backgroundType === "image" &&
+        <div className="background_cover"></div>
+      }
       <div className="card_title_wrap">
-        <span className="card_title">{study.name}</span>
+        <span className="card_title">
+          <span className={study.backgroundValue}>{study.nickname} </span>의 {study.name}</span>
         <div className="tag point_tag">
           <img src={tagImg} alt="태그 장식" />
           {getStudyPoint(study)}

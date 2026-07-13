@@ -50,16 +50,28 @@ input:focus { outline-color: var(--brand); }
 .link_wrap .link_btn { display: flex; flex-direction: row; justify-content: space-between; gap: 4px; width: fit-content; height: fit-content; line-height: 24px; padding: 12px; border-radius: 15px; border: 1px solid var(--gray); text-decoration: none; color: var(--dark-gray); font-weight: 500; font-size: 16px; }
 .link_btn img { display: block; width: 24px; height: 24px; }
 
-.card_wrap { display: flex; flex-direction: row; justify-content: space-between; gap: 24px; }
-.card { width: 100%; padding: 30px; background-color: var(--dark-gray); border-radius: 20px; cursor: pointer; }
-.card_title_wrap { display: flex; flex-direction: row; justify-content: space-between; margin-bottom: 10px; }
-.card_title { color: var(--wh); font-size: 18px; font-weight: 700; }
-.tag_wrap { display: flex; flex-direction: row; justify-content: left; gap: 5px; }
+.card_wrap { display: flex; flex-direction: row; justify-content: left; gap: 24px; flex-wrap: wrap; }
+.card { position: relative; width: calc((100% - 48px) / 3); padding: 30px; background-color: var(--dark-gray); border-radius: 20px; cursor: pointer; overflow: hidden; }
+.card_title_wrap { position: relative; display: flex; flex-direction: row; justify-content: space-between; margin-bottom: 10px; }
+.card_title { color: var(--wh); font-size: 18px; font-weight: 700; word-break: keep-all; }
+.tag_wrap { position: relative; display: flex; flex-direction: row; justify-content: left; gap: 5px; }
 .tag { display: flex; flex-direction: row; justify-content: space-between; gap: 4px; align-items: center; width: fit-content; height: 22px; padding: 4px 10px; border-radius: 50px; color: var(--wh); font-size: 12px; font-weight: 500; white-space: nowrap; border: 1px solid rgba(0, 0, 0, 0.10); background: rgba(0, 0, 0, 0.50); }
 .point_tag { flex: 0 0 auto; width: max-content; }
 .tag img { display: inline-block; height: 14px; }
-.card_status { display: block; color: var(--light-gray); font-size: 14px; font-weight: 400; margin-bottom: 30px; }
-.card_text { height: 48px; color: var(--wh); font-size: 16px; font-weight: 400; line-height: 24px; margin-bottom: 30px; }
+.card_status { position: relative; display: block; color: var(--light-gray); font-size: 14px; font-weight: 400; margin-bottom: 30px; }
+.card_text { position: relative; height: 48px; color: var(--wh); font-size: 16px; font-weight: 400; line-height: 24px; margin-bottom: 30px; word-break: keep-all; }
+
+.card.color .card_title,
+.card.color .card_text { color: var(--black) !important; }
+.card.color .card_status { color: var(--dark-gray); }
+.card.image { position: relative; overflow: hidden; }
+
+.card.color .card_title .green { color: var(--green-text); }
+.card.color .card_title .yellow { color: var(--yellow-text); }
+.card.color .card_title .blue { color: var(--blue-text); }
+.card.color .card_title .pink { color: var(--pink-text); }
+
+.background_cover { position: absolute; left: 0; top: 0; background-color: rgba(0, 0, 0, 0.3); width: 100%; height: 100%; }
 
 /* 모달 */
 .modal_wrap { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.3); }
