@@ -93,30 +93,47 @@ const StudyDetailPage = () => {
   }, [id]);
 
   // 이모지 선택시 출력 확인
-  const handleEmojiClick = (selectedEmoji) => {
-    setEmoji((prevEmoji) => {
-      const alreadyExists = prevEmoji.some(
-        (item) => item.emoji === selectedEmoji,
-      );
+  const handleEmojiClick = async (selectedEmoji) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/study/${id}/emojis`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ emoji: selectedEmoji }),
+      });
 
-      if (alreadyExists) {
-        return prevEmoji.map((item) =>
-          item.emoji === selectedEmoji
-            ? { ...item, count: item.count + 1 }
-            : item,
-        );
+      if (!response.ok) {
+        throw new Error(await getStudyErrorMessage(response));
       }
 
-      return [
-        ...prevEmoji,
-        {
-          emoji: selectedEmoji,
-          count: 1,
-        },
-      ];
-    });
-    setIsEmojiOpen(false);
-    setIsEmojiMoreOpen(false);
+      const result = await response.json();
+      const updatedEmoji = result?.data;
+
+      if (!updatedEmoji?.emoji) {
+        throw new Error("응원 이모지를 저장하지 못했습니다.");
+      }
+
+      setEmoji((prevEmoji) => {
+        const alreadyExists = prevEmoji.some(
+          (item) => item.emoji === updatedEmoji.emoji,
+        );
+
+        if (alreadyExists) {
+          return prevEmoji.map((item) =>
+            item.emoji === updatedEmoji.emoji
+              ? { ...item, ...updatedEmoji }
+              : item,
+          );
+        }
+
+        return [...prevEmoji, updatedEmoji];
+      });
+      setIsEmojiOpen(false);
+      setIsEmojiMoreOpen(false);
+    } catch (error) {
+      setPasswordError(error.message || "응원 이모지를 저장하지 못했습니다.");
+    }
   };
 
   // 이모지 3개까지만 보여주고 나머지는 +N으로 표시
