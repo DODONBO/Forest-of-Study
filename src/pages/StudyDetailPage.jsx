@@ -1,16 +1,21 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import EmojiPicker from "emoji-picker-react";
 import { mockStudies } from "../mocks/studyMock.js";
 import "../style.css";
+const API_BASE_URL = "http://127.0.0.1:3000";
 
 const StudyDetailPage = () => {
   const { id } = useParams();
-
+  const navigate = useNavigate();
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [nextPath, setNextPath] = useState("");
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const [isEmojiMoreOpen, setIsEmojiMoreOpen] = useState(false);
   const emojiRef = useRef(null);
   const [emoji, setEmoji] = useState([]);
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -60,6 +65,25 @@ const StudyDetailPage = () => {
   // 이모지 3개까지만 보여주고 나머지는 +N으로 표시
   const visibleEmoji = emoji.slice(0, 3);
   const hiddenEmoji = emoji.slice(3);
+
+  //모달
+  const handleOpenPasswordModal = (path) => {
+    setNextPath(path);
+    setPassword("");
+    setPasswordError("");
+    setIsPasswordModalOpen(true);
+  };
+  const handlePasswordCheck = () => {
+    if (password === study.password) {
+      setPassword("");
+      setPasswordError("");
+      setIsPasswordModalOpen(false);
+
+      navigate(nextPath);
+    } else {
+      setPasswordError("비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
+    }
+  };
   return (
     <main>
       <header>
@@ -142,8 +166,91 @@ const StudyDetailPage = () => {
         </div>
       </header>
 
-      <section>스터디 상세페이지 {id}</section>
+      <section className="study-detail-section">
+        <h1>
+          {study.nickname}의 {study.name}
+        </h1>
+
+        <div>
+          <span>소개</span>
+          <p>{study.description}</p>
+        </div>
+
+        <div>
+          <span>현재까지 획득한 포인트</span>
+          <p> {study.point}P 획득</p>
+        </div>
+        <div className="study-menu-buttons">
+          <button
+            type="button"
+            onClick={() => handleOpenPasswordModal(`/study/${id}/edit`)}
+          >
+            수정하기
+          </button>
+          <button
+            type="button"
+            onClick={() => handleOpenPasswordModal(`/study/${id}/edit`)}
+          >
+            삭제하기
+          </button>
+        </div>
+        <div className="study-action-buttons">
+          <button
+            type="button"
+            // onClick={() => handleOpenPasswordModal(`/study/${id}/habit`)}
+            onClick={handleOpenPasswordModal}
+          >
+            오늘의 습관
+          </button>
+
+          <button
+            type="button"
+            // onClick={() => handleOpenPasswordModal(`/study/${id}/focus`)}
+            onClick={handleOpenPasswordModal}
+          >
+            오늘의 집중
+          </button>
+        </div>
+      </section>
       <section>습관 영역</section>
+
+      {isPasswordModalOpen && (
+        <div className="password-modal-overlay">
+          <div className="password-modal">
+            <h2>
+              {study.nickname}의 {study.name}
+            </h2>
+            <p>권한이 필요해요</p>
+            <span>비밀번호</span>
+
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="비밀번호를 입력하세요"
+            />
+
+            <div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPasswordModalOpen(false);
+                  setPassword("");
+                }}
+              >
+                나가기
+              </button>
+
+              <button type="button" onClick={handlePasswordCheck}>
+                수정하러 가기
+              </button>
+            </div>
+          </div>
+          {passwordError && (
+            <div className="password-error-toast">❗ {passwordError}</div>
+          )}
+        </div>
+      )}
     </main>
   );
 };
