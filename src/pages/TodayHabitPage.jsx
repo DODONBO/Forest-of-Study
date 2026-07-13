@@ -4,6 +4,7 @@ import axios from "../utils/axios.js";
 import HabitList from "../components/habit/HabitList.jsx";
 import HabitEditModal from "../components/habit/HabitEditModal.jsx";
 import WeeklyHabitRecordTable from "../components/habit/WeeklyHabitRecordTable.jsx";
+import CurrentTime from "../components/habit/CurrentTime.jsx";
 
 function TodayHabitPage() {
   const { id } = useParams();
@@ -33,6 +34,7 @@ function TodayHabitPage() {
       <div className="inner">
         <div className="card_container">
           <span className="container_title">{study.name}</span>
+          <CurrentTime />
           <div>
             <Link to={`study/${id}/focus`}>오늘의 집중</Link>
             <Link to={"/"}>홈</Link>
