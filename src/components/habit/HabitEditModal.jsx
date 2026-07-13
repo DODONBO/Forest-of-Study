@@ -1,73 +1,121 @@
-import { useState } from 'react'
-import trashIcon from '../../assets/img/ic_trash.svg'
-import axios from '../../utils/axios'
-import { useParams } from 'react-router-dom';
+import { useState } from "react";
+import trashIcon from "../../assets/img/ic_trash.svg";
+import axios from "../../utils/axios";
+import { useParams } from "react-router-dom";
+import Popup from "../Popup";
+import { modalType } from "../../utils/enum/modalTypeEnum";
 
 function HabitEditModal({ habits, onClose, onSave }) {
   const { id } = useParams();
-  const [editHabits, setEditHabits] = useState(habits)
-  const [newHabitName, setNewHabitName] = useState('')
+  const [editHabits, setEditHabits] = useState(habits);
+  const [newHabitName, setNewHabitName] = useState("");
+  const [popup, setPopup] = useState({
+    isOpen: false,
+    type: modalType.CONFIRM,
+    message: "",
+    onConfirm: null,
+  });
 
-  const deleteHabit = async (e, habitId) => {
+  const closePopup = () => {
+    setPopup({
+      isOpen: false,
+      type: modalType.ALERT,
+      message: "",
+      onConfirm: null,
+    });
+  };
+
+  const openAlert = (message, callback) => {
+    setPopup({
+      isOpen: true,
+      type: "alert",
+      message,
+      onConfirm: () => {
+        closePopup();
+        callback?.();
+      },
+    });
+  };
+
+  const openConfirm = (message, onConfirm) => {
+    setPopup({
+      isOpen: true,
+      type: modalType.CONFIRM,
+      message,
+      onConfirm,
+    });
+  };
+
+  const openDeletePopup = (e, habitId) => {
     e.stopPropagation();
 
-    if (!confirm("습관을 삭제하시겠습니까?")) return;
+    openConfirm("삭제하시겠습니까?", () => {
+      deleteHabit(habitId);
+    });
+  };
 
+  const deleteHabit = async (habitId) => {
     try {
       await axios.delete(`/study/${id}/habit/${habitId}/`);
-      alert("삭제되었습니다.");
-      onSave();
-      
+
+      openAlert("삭제되었습니다.", onSave);
     } catch (error) {
       console.error(error);
-      alert("삭제에 실패했습니다.");
+      openAlert("삭제에 실패했습니다.");
     }
-  }
+  };
 
   const handleAddHabit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (newHabitName.trim() === '') return
+    if (newHabitName.trim() === "") return;
 
     const newHabit = {
       id: null,
       name: newHabitName,
       isChecked: false,
-    }
+    };
     setEditHabits([...editHabits, newHabit]);
-    setNewHabitName('');
-  }
+    setNewHabitName("");
+  };
 
   const saveUpdatedHabits = async (e) => {
     e.preventDefault();
 
     const response = await axios.patch(`/study/${id}/habit`, editHabits);
     onSave();
-  }
+  };
 
   const handleHabitNameChange = (id, value) => {
     setEditHabits((prev) =>
       prev.map((habit) =>
-        habit.id === id
-          ? { ...habit, name: value }
-          : habit
-      )
+        habit.id === id ? { ...habit, name: value } : habit,
+      ),
     );
   };
 
   return (
     <div className="modal_wrap">
-      <div className='modal edit_habit_modal'>
+      <div className="modal edit_habit_modal">
         <div className="inner">
-        <div className="modal_title">습관 목록</div>
-          <div className='habit_wrap'>
+          <div className="modal_title">습관 목록</div>
+          <div className="habit_wrap">
             {editHabits.length === 0 ? (
               <p>아직 습관이 없어요</p>
             ) : (
               editHabits.map((habit) => (
-                <div key={habit.id} className='habit_line'>
-                  <input className='habit_btn' value={habit.name} onChange={(e) => handleHabitNameChange(habit.id, e.target.value)} />
-                  <div className='delete_habit_btn' onClick={(e) => {deleteHabit(e, habit.id)}}>
+                <div key={habit.id} className="habit_line">
+                  <input
+                    className="habit_btn"
+                    value={habit.name}
+                    onChange={(e) =>
+                      handleHabitNameChange(habit.id, e.target.value)
+                    }
+                  />
+                  <div
+                    className="delete_habit_btn"
+                    onClick={(e) => openDeletePopup(e, habit.id)}
+                  >
                     <img src={trashIcon} alt="삭제 아이콘" />
                   </div>
                 </div>
@@ -82,23 +130,33 @@ function HabitEditModal({ habits, onClose, onSave }) {
               onChange={(e) => setNewHabitName(e.target.value)}
             />
 
-            <button type="submit">
-              +
-            </button>
+            <button type="submit">+</button>
           </form>
         </div>
-        <div className='modal_btn_wrap'>
-            <button type="button" onClick={onClose}>
-              취소
-            </button>
+        <div className="modal_btn_wrap">
+          <button type="button" onClick={onClose}>
+            취소
+          </button>
 
-            <button type="button" className='green' onClick={(e) => saveUpdatedHabits(e)}>
-              수정 완료
-            </button>
-          </div>
+          <button
+            type="button"
+            className="green"
+            onClick={(e) => saveUpdatedHabits(e)}
+          >
+            수정 완료
+          </button>
+        </div>
       </div>
+      {popup.isOpen && (
+        <Popup
+          type={popup.type}
+          message={popup.message}
+          onClose={closePopup}
+          onConfirm={popup.onConfirm}
+        />
+      )}
     </div>
-  )
+  );
 }
 
-export default HabitEditModal
+export default HabitEditModal;
