@@ -47,3 +47,7 @@
   font-size: 48px;
   text-align: center;
 }
+
+.focus-timer__display--over {
+  color: var(--green-text);
+}

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import FocusResultToast from './FocusResultToast.jsx';
+import FocusButton from './FocusButton';
 import './FocusTimer.css';
 
 export default function FocusTimer({ studyId, password }) {
@@ -8,8 +10,8 @@ export default function FocusTimer({ studyId, password }) {
     const [settingMinutes, setSettingMinutes] = useState(25);  // 설정한 분
     const [settingSeconds, setSettingSeconds] = useState(0);   // 설정한 초
     const [isEditing, setIsEditing] = useState(false);         // 수정할 때 쓴 거 
-    const [completeMessage, setCompleteMessage] = useState('');  // 0초 도달 축하
-    const [resultMessage, setResultMessage] = useState('');      // 정지 후 포인트 결과
+    const [toast, setToast] = useState(null);
+
 
     const totalSettingSeconds = settingMinutes * 60 + settingSeconds;
     const remainingSeconds = totalSettingSeconds - elapsedSeconds;
@@ -28,11 +30,18 @@ export default function FocusTimer({ studyId, password }) {
         };
     }, [isRunning]);
 
+    // 토스트가 뜨면 3초 뒤 자동으로 사라짐
     useEffect(() => {
-        if (isRunning && remainingSeconds === 0) {
-            setCompleteMessage('🎉 목표 시간을 다 채웠어요! 계속 집중하면 추가 포인트를 받아요.');
-        }
-    }, [remainingSeconds, isRunning]);
+        if (!toast) return;   // 토스트가 없으면 아무것도 안 함
+
+        const timeoutId = setTimeout(() => {
+            setToast(null);
+        }, 3000);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, [toast]);
 
     function formatTime(totalSeconds) {
         const isNegative = totalSeconds < 0;
@@ -50,8 +59,7 @@ export default function FocusTimer({ studyId, password }) {
     }
 
     function handleStart() {
-        setCompleteMessage('');   // 새로 시작하면 이전 메시지 지우기
-        setResultMessage('');
+        setToast(null);
         setIsRunning(true);
         setIsStarted(true);
     }
@@ -69,8 +77,7 @@ export default function FocusTimer({ studyId, password }) {
         const isCompleted = elapsedSeconds >= totalSettingSeconds;
 
         if (!isCompleted) {
-            // 포인트 전송 없이 초기화만, 여기에 중도 정지 토스트를 넣으면 될 것 같아요
-            setResultMessage('시간을 다 채우지 못해 포인트가 지급되지 않았어요.');
+            setToast({ resultType: 'interrupted' });
             handleReset();
             return;
         }
@@ -94,8 +101,7 @@ export default function FocusTimer({ studyId, password }) {
             }
 
             console.log('집중 성공:', data);
-            setCompleteMessage('');
-            setResultMessage(`🎉 ${point}포인트를 획득했어요!`);
+            setToast({ resultType: 'success', earnedPoint: point });
 
         } catch (error) {
             console.error('전송 실패:', error);
@@ -159,29 +165,24 @@ export default function FocusTimer({ studyId, password }) {
                 </div>
             )}
 
-            {/* 여기서부터 모달 창이에요 확인하려고 그려놨는데 바꾸셔도 됩니다 */}
-
-            {completeMessage && (
-                <div className="focus-timer__message">{completeMessage}</div>
+            {toast && (
+                <FocusResultToast
+                    resultType={toast.resultType}
+                    earnedPoint={toast.earnedPoint}
+                />
             )}
-            {resultMessage && (
-                <div className="focus-timer__message focus-timer__message--result">{resultMessage}</div>
-            )}
-
-            {/* 여기서부터 모달 끝 */}
 
             <div className="focus-timer__buttons">
                 {!isStarted ? (
-                    <button type="button" onClick={handleStart}>시작</button>
+                    <FocusButton onClick={handleStart}>시작</FocusButton>
                 ) : (
                     <>
                         {isRunning ? (
-                            <button type="button" onClick={handlePause}>일시정지</button>
+                            <FocusButton onClick={handlePause}>일시정지</FocusButton>
                         ) : (
-                            <button type="button" onClick={handleResume}>계속</button>
+                            <FocusButton onClick={handleResume}>계속</FocusButton>
                         )}
-                        <button type="button" onClick={handleFinish}>정지</button>
-                        <button type="button" onClick={handleReset}>초기화</button>
+                        <FocusButton onClick={handleFinish}>정지</FocusButton>
                     </>
                 )}
             </div>
