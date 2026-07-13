@@ -31,3 +31,18 @@ export const addRecentStudy = (study) => {
 
   return nextStudies;
 };
+
+export const removeRecentStudy = (studyId) => {
+  if (typeof window === "undefined" || !studyId) {
+    return [];
+  }
+
+  const currentStudies = getRecentStudies();
+  const nextStudies = currentStudies.filter(
+    (currentStudy) => currentStudy.id !== studyId,
+  );
+
+  window.localStorage.setItem(RECENT_STUDIES_KEY, JSON.stringify(nextStudies));
+
+  return nextStudies;
+};
