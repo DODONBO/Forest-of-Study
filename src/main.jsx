@@ -3,6 +3,8 @@ import App from './App.jsx'
 import TodayHabitPage from './pages/TodayHabitPage.jsx';
 import DesignExample from './components/DesignExample.jsx';
 
+import TodayFocusPage from './pages/TodayFocusPage.jsx';
+
 function Main() {
   return (
     <BrowserRouter>
@@ -10,6 +12,7 @@ function Main() {
         <Route path="/" element={<App />}>
           <Route index element={<DesignExample/>} />
           <Route path="study/:id/habit" element={<TodayHabitPage />} />
+          <Route path="study/:id/focus" element={<TodayFocusPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
