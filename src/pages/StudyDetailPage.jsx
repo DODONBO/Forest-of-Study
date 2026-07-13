@@ -26,6 +26,7 @@ const StudyDetailPage = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [nextPath, setNextPath] = useState("");
+  const [passwordAction, setPasswordAction] = useState("navigate");
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const [isEmojiMoreOpen, setIsEmojiMoreOpen] = useState(false);
   const emojiRef = useRef(null);
@@ -141,12 +142,22 @@ const StudyDetailPage = () => {
   const hiddenEmoji = emoji.slice(3);
 
   //모달
-  const handleOpenPasswordModal = (path) => {
+  const handleOpenPasswordModal = (path, action = "navigate") => {
     setNextPath(path);
+    setPasswordAction(action);
     setPassword("");
     setPasswordError("");
     setIsPasswordModalOpen(true);
   };
+
+  const closePasswordModal = () => {
+    setIsPasswordModalOpen(false);
+    setPassword("");
+    setPasswordError("");
+    setPasswordAction("navigate");
+    setNextPath("");
+  };
+
   const handlePasswordCheck = async () => {
     if (!password.trim()) {
       setPasswordError("비밀번호를 입력해주세요.");
@@ -154,8 +165,9 @@ const StudyDetailPage = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/study/${id}/password/verify`, {
-        method: "POST",
+      const isDeleteAction = passwordAction === "delete";
+      const response = await fetch(`${API_BASE_URL}/study/${id}${isDeleteAction ? "" : "/password/verify"}`, {
+        method: isDeleteAction ? "DELETE" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -169,7 +181,8 @@ const StudyDetailPage = () => {
       setPassword("");
       setPasswordError("");
       setIsPasswordModalOpen(false);
-      navigate(nextPath);
+      setPasswordAction("navigate");
+      navigate(isDeleteAction ? "/" : nextPath);
     } catch (error) {
       setPasswordError(error.message || "비밀번호가 일치하지 않습니다.");
     }
@@ -300,7 +313,7 @@ const StudyDetailPage = () => {
           </button>
           <button
             type="button"
-            onClick={() => handleOpenPasswordModal(`/study/${id}/edit`)}
+            onClick={() => handleOpenPasswordModal("", "delete")}
           >
             삭제하기
           </button>
@@ -308,16 +321,14 @@ const StudyDetailPage = () => {
         <div className="study-action-buttons">
           <button
             type="button"
-            // onClick={() => handleOpenPasswordModal(`/study/${id}/habit`)}
-            onClick={handleOpenPasswordModal}
+            onClick={() => navigate(`/study/${id}/habit`)}
           >
             오늘의 습관
           </button>
 
           <button
             type="button"
-            // onClick={() => handleOpenPasswordModal(`/study/${id}/focus`)}
-            onClick={handleOpenPasswordModal}
+            onClick={() => navigate(`/study/${id}/focus`)}
           >
             오늘의 집중
           </button>
@@ -344,16 +355,13 @@ const StudyDetailPage = () => {
             <div>
               <button
                 type="button"
-                onClick={() => {
-                  setIsPasswordModalOpen(false);
-                  setPassword("");
-                }}
+                onClick={closePasswordModal}
               >
                 나가기
               </button>
 
               <button type="button" onClick={handlePasswordCheck}>
-                수정하러 가기
+                {passwordAction === "delete" ? "삭제하기" : "수정하러 가기"}
               </button>
             </div>
           </div>
