@@ -1,44 +1,73 @@
-import { useState } from "react"
-
-import HabitList from "../components/habit/HabitList.jsx"
-import HabitEditModal from "../components/habit/HabitEditModal.jsx"
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import axios from "../utils/axios.js";
+import HabitList from "../components/habit/HabitList.jsx";
+import HabitEditModal from "../components/habit/HabitEditModal.jsx";
+import WeeklyHabitRecordTable from "../components/habit/WeeklyHabitRecordTable.jsx";
+import CurrentTime from "../components/habit/CurrentTime.jsx";
+import arrowRight from "../assets/img/ic_arrow_right.svg";
 
 function TodayHabitPage() {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const { id } = useParams();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [study, setStudy] = useState([]);
+  const [habits, setHabits] = useState([]);
 
-  const [habits, setHabits] = useState([
-    { id: 1, name: "매일매일 6시 기상", isChecked: true },
-    { id: 2, name: "아침 챙겨 먹기", isChecked: false },
-    { id: 3, name: "물 2L 마시기", isChecked: false },
-  ])
+  const handleLoad = async () => {
+    const response = await axios.get(`/study/${id}/habit`);
 
-  const handleSaveHabits = (newHabits) => {
-    setHabits(newHabits)
-    setIsEditModalOpen(false)
-  }
+    setStudy(response.data);
+    setHabits(response.data.habits);
+    setIsEditModalOpen(false);
+  };
+
+  useEffect(() => {
+    handleLoad();
+  }, []);
 
   return (
     <section>
       <div className="inner">
-        <h1>오늘의 습관</h1>
-        <button 
-          type="button" 
-          onClick={() => setIsEditModalOpen(true)}
-        >
-          목록 수정
-        </button>
-        <HabitList habits={habits}/>
+        <div className="card_container">
+          <div className="container_title_wrap">
+            <span className="container_title">{study.name}</span>
 
-        {isEditModalOpen && (
-          <HabitEditModal 
-          habits={habits}
-          onClose={() => setIsEditModalOpen(false)}
-          onSave={handleSaveHabits}
-          />
-        )}
+            <div className="link_wrap">
+              <Link to={`/study/${id}/focus`} className="link_btn">오늘의 집중
+                <img src={arrowRight} alt="링크 버튼 장식" />
+              </Link>
+              <Link to={"/"} className="link_btn">홈
+                <img src={arrowRight} alt="링크 버튼 장식" />
+              </Link>
+            </div>
+          </div>
+          <CurrentTime />
+          <div className="card_container inner_container">
+            <div className="inner">
+              <span className="container_title">오늘의 습관</span>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(true)}
+                className="edit_habit_btn"
+              >
+                목록 수정
+              </button>
+              <HabitList habits={habits} handleLoad={handleLoad}/>
+            </div>
+          </div>
+          <WeeklyHabitRecordTable habits={habits} studyId={id}/>
+        </div>
       </div>
+      {isEditModalOpen && (
+                <HabitEditModal
+                  habits={habits}
+                  onClose={() => setIsEditModalOpen(false)}
+                  onSave={handleLoad}
+                  studyId={id}
+                />
+      )}
     </section>
   );
 }
 
-export default TodayHabitPage
+export default TodayHabitPage;

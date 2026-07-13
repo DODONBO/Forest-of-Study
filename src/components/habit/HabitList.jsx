@@ -1,6 +1,6 @@
 import HabitItem from "./HabitItem.jsx"
 
-function HabitList({ habits = [] }) {
+function HabitList({ habits = [] , handleLoad }) {
   if (habits.length === 0) {
     return (
       <p>
@@ -11,11 +11,13 @@ function HabitList({ habits = [] }) {
   }
   
   return (
-    <div>
+    <div className="habit_wrap">
       {habits.map((habit) => (
         <HabitItem 
           key={habit.id}
           habit={habit}
+          habits={habits}
+          handleLoad={handleLoad}
         />
       ))}
     </div>
