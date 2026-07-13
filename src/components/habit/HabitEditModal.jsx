@@ -57,8 +57,12 @@ function HabitEditModal({ habits, onClose, onSave }) {
   const deleteHabit = async (habitId) => {
     try {
       await axios.delete(`/study/${id}/habit/${habitId}/`);
-
-      openAlert("삭제되었습니다.", onSave);
+      // 삭제된 항목만 모달 목록에서 사라지도록
+      setEditHabits((prev) => 
+        prev.filter((habit) => habit.id !== habitId),
+      );
+      // 기존 습관 하나를 삭제해도 handleLoad가 호출되지 않아 모달이 닫히지 않음
+      openAlert("삭제되었습니다.");
     } catch (error) {
       console.error(error);
       openAlert("삭제에 실패했습니다.");
