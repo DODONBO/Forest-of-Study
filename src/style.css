@@ -35,11 +35,16 @@ input:focus { outline-color: var(--brand); }
 .btn span.shadow { transform: translate(-50%, -6px); color: var(--green-text); }
 
 /* 카드 형태 */
-.card_container { width: 100%; height: fit-content; padding: 40px; border-radius: 20px; background-color: var(--wh); margin: 40px 0; }
+.card_container { width: 100%; height: fit-content; padding: 40px; border-radius: 20px; background-color: var(--wh); margin: 24px 0 40px; }
 .card_container.inner_container { border: 1px solid var(--gray); }
 .card_container.inner_container .inner { position: relative; max-width: 400px; }
 .container_title { display: block; color: var(--black); font-family: Pretendard; font-size: 32px; font-weight: 800; margin-bottom: 30px; }
 .card_container.inner_container .container_title { text-align: center; }
+.container_title_wrap { display: flex; flex-direction: row; justify-content: space-between; }
+
+.link_wrap { display: flex; flex-direction: row; justify-content: right; gap: 16px; }
+.link_wrap .link_btn { display: flex; flex-direction: row; justify-content: space-between; gap: 4px; width: fit-content; height: fit-content; line-height: 24px; padding: 12px; border-radius: 15px; border: 1px solid var(--gray); text-decoration: none; color: var(--dark-gray); font-weight: 500; font-size: 16px; }
+.link_btn img { display: block; width: 24px; height: 24px; }
 
 .card_wrap { display: flex; flex-direction: row; justify-content: space-between; gap: 24px; }
 .card { width: 100%; padding: 30px; background-color: var(--dark-gray); border-radius: 20px; cursor: pointer; }
@@ -95,3 +100,6 @@ input:focus { outline-color: var(--brand); }
 .weekly_habit_record_line .habit_name { width: 100%; padding: 0 24px; font-size: 18px; font-weight: 700; color: var(--black); line-height: 64px; text-align: right; }
 .habit_record_icon_container { width: fit-content; height: fit-content; padding: 14px 41px; }
 .habit_record_icon { width: 36px; height: 36px; }
+
+.current_time_title { display: block; font-size: 18px; font-weight: 400; color: var(--dark-gray); margin-bottom: 8px; }
+.current_time { width: fit-content; height: fit-content; padding: 8px 12px; border-radius: 50px; border: 1px solid rgba(0, 0, 0, 0.10); font-size: 16px; color: var(--black); }
