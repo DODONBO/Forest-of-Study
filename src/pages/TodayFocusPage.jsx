@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-
 import axios from '../utils/axios.js';
-import Header from '../components/Header.jsx';
+
 import FocusTimer from '../components/focus/FocusTimer.jsx';
 import FocusPoint from '../components/focus/FocusPoint.jsx';
 import arrowRightIcon from '../assets/img/ic_arrow_right.svg';
+
+// 토스트 확인용 import
 import FocusResultToast from '../components/focus/FocusResultToast.jsx';
 
 import './TodayFocusPage.css';
@@ -59,10 +60,12 @@ function FocusPage() {
 
   return (
     <div className="focus-page">
+
       {/* 중단, 성공 토스트 임시 확인용, 중단 토스트 확인 필요한 경우 resultType="interrupted"로 변경하면 확인 가능
             <FocusResultToast
-                resultType="success"
+                resultType="goalAchieved"
                 earnedPoint={5} /> */}
+
       <div className="focus-page__container">
         <main className="focus-page__card">
           <section className="focus-page__study-header">
