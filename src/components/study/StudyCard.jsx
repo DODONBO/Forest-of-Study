@@ -59,19 +59,16 @@ const getCardStyle = (study) => {
 const getNicknameStyle = (study) => {
   const color = study.backgroundValue;
 
-  if (color === 'GREEN' || color === '#E1EDDE') {
-    return { color: '#578246' };
-
-  } else if (color === 'YELLOW' || color === '#FFF1CC') {
-    return { color: '#C18E1B' };
-
-  } else if ( color === 'BLUE' || color === '#E0F1F5') {
-    return { color: '#418099' };
-
-  } else if ( color === 'PINK' || color === '#FDE0E9') {
-    return { color: '#BC3C6A' };
+  if (color === "GREEN" || color === "#E1EDDE") {
+    return { color: "#578246" };
+  } else if (color === "YELLOW" || color === "#FFF1CC") {
+    return { color: "#C18E1B" };
+  } else if (color === "BLUE" || color === "#E0F1F5") {
+    return { color: "#418099" };
+  } else if (color === "PINK" || color === "#FDE0E9") {
+    return { color: "#BC3C6A" };
   }
-}
+};
 
 function StudyCard({ study }) {
   const navigate = useNavigate();
@@ -85,13 +82,18 @@ function StudyCard({ study }) {
   };
 
   return (
-    <div className={study.backgroundType + ' card'} style={cardstyle} onClick={handleClick}>
-      {study.backgroundType === "image" &&
+    <div
+      className={study.backgroundType + " card"}
+      style={cardstyle}
+      onClick={handleClick}
+    >
+      {study.backgroundType === "image" && (
         <div className="background_cover"></div>
-      }
+      )}
       <div className="card_title_wrap">
         <span className="card_title">
-          <span style={nicknameStyle}>{study.nickname} </span>의 {study.name}</span>
+          <span style={nicknameStyle}>{study.nickname} </span>의 {study.name}
+        </span>
         <div className="tag point_tag">
           <img src={tagImg} alt="태그 장식" />
           {getStudyPoint(study)}
@@ -111,9 +113,7 @@ function StudyCard({ study }) {
             </div>
           ))
         ) : (
-          <div className="tag">
-            🌱<span>0</span>
-          </div>
+          <span className="tag_empty">아직 반응이 없어요</span>
         )}
       </div>
     </div>
