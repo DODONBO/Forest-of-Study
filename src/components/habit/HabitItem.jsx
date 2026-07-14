@@ -1,24 +1,25 @@
 import axios from "../../utils/axios";
 
 function HabitItem({ habit, habits, studyId, handleLoad }) {
+
   const toggleCheck = async (habitId, data) => {
-    const response = await axios.patch(`/study/${studyId}/habit/${habitId}/record`);
-   
-    return response.data;
+    try {
+      const response = await axios.patch(`/study/${studyId}/habit/${habitId}/record`);
+
+    } catch (error) {
+      console.log(error);
+      
+    } finally {
+      handleLoad();
+    }
   };
 
   const toggleHabit = async (habitId) => {
-    try {
-      const targetHabit = habits.find((habit) => habit.id === habitId);
+    const targetHabit = habits.find((habit) => habit.id === habitId);
 
-      const response = await toggleCheck(habitId, {
-        isChecked: !targetHabit.isChecked,
-      });
-
-      handleLoad();
-    } catch (error) {
-      console.error(error);
-    }
+    await toggleCheck(habitId, {
+      isChecked: !targetHabit.isChecked,
+    });
   };
 
   return (
