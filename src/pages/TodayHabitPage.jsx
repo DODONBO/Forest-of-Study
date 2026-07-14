@@ -9,23 +9,26 @@ import { useLoading } from "../contexts/LoadingContext.jsx";
 
 function TodayHabitPage() {
   const { startLoading, endLoading } = useLoading();
+  const [isHabitLoading, setIsHabitLoading] = useState(true)
   const { id } = useParams();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [study, setStudy] = useState([]);
   const [habits, setHabits] = useState([]);
 
   const handleLoad = async () => {
+    setIsHabitLoading(true);
     startLoading();
 
     try {
       const response = await axios.get(`/study/${id}/habit`);
 
       setStudy(response.data);
-      setHabits(response.data.habits);
+      setHabits(response.data.habits ?? []);
       setIsEditModalOpen(false);
     } catch (error) {
       console.log(error);
     } finally {
+      setIsHabitLoading(false);
       endLoading();
     }
   };
@@ -61,7 +64,11 @@ function TodayHabitPage() {
               >
                 목록 수정
               </button>
-              <HabitList habits={habits} handleLoad={handleLoad}/>
+              <HabitList 
+                habits={habits} 
+                handleLoad={handleLoad}
+                isLoading={isHabitLoading}
+              />
             </div>
           </div>
         </div>

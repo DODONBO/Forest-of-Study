@@ -1,6 +1,14 @@
 import HabitItem from "./HabitItem.jsx"
 
-function HabitList({ habits, handleLoad }) {
+function HabitList({ habits, handleLoad, isLoading }) {
+  if (isLoading) {
+    return (
+      <p>
+        습관 목록을 불러오는 중입니다.
+      </p>
+    );
+  }
+
   if (habits.length === 0) {
     return (
       <p>
