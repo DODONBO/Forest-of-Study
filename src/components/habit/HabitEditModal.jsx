@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import trashIcon from "../../assets/img/ic_trash.svg";
 import addBtnIcon from "../../assets/img/ic_plus.svg";
 import axios from "../../utils/axios";
@@ -33,6 +33,73 @@ function HabitEditModal({ habits, onClose, onSave }) {
     });
   };
 
+  const openConfirm = (message, onConfirm) => {
+    setPopup({
+      isOpen: true,
+      type: modalType.CONFIRM,
+      message,
+      onConfirm,
+    });
+  };
+
+  // 새 습관 입력, 습관 추가, 기존 습관 이름 수정 여부 확인
+  const hasUnsavedChanges = 
+    newHabitName.trim() !== "" ||
+    editHabits.some((habit) => {
+      if (!habit.id) {
+        return true;
+      }
+
+      const originalHabit = habits.find(
+        (originalHabit) => originalHabit.id === habit.id,
+      );
+
+      return originalHabit?.name !== habit.name;
+    });
+  
+  // 수정 사항 있으면 확인 팝업 표시, 없으면 바로 모달 닫기
+  const handleCloseRequest = () => {
+    if (!hasUnsavedChanges) {
+      onClose();
+      return;
+    }
+
+    openConfirm("수정 중인 내용이 저장되지 않습니다. 나가시겠습니까?", () => {
+      closePopup();
+      onClose();
+    });
+  };
+
+  // esc 입력시 팝업이 열려 있으면 팝업부터 닫고,
+  // 팝업이 없으면 습관 수정 모달 닫기 요청
+  useEffect(() => {
+    const handleKeydown = (e) => {
+      if (e.key !== "Escape") return;
+
+      if (popup.isOpen) {
+        closePopup();
+        return;
+      }
+
+      handleCloseRequest();
+    };
+
+    document.addEventListener("keydown", handleKeydown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeydown);
+    };
+  }, [popup.isOpen, hasUnsavedChanges, onClose]);
+
+  // 모달 내부가 아닌 바깥 배경을 클릭했을 때만 닫기 요청
+  const handleBackdropClick = (e) => {
+    if (popup.isOpen) return;
+
+    if (e.target === e.currentTarget) {
+      handleCloseRequest();
+    }
+  };
+
   const openAlert = (message, callback) => {
     setPopup({
       isOpen: true,
@@ -45,16 +112,6 @@ function HabitEditModal({ habits, onClose, onSave }) {
     });
   };
 
-  const openConfirm = (message, onConfirm) => {
-    setPopup({
-      isOpen: true,
-      type: modalType.CONFIRM,
-      message,
-      onConfirm,
-    });
-  };
-
-  // 임시 습관의 localId도 필요하기 때문에 습관 객체 전체를 받음
   const openDeletePopup = (e, habit) => {
     e.stopPropagation();
 
@@ -64,7 +121,6 @@ function HabitEditModal({ habits, onClose, onSave }) {
   };
 
   const deleteHabit = async (habit) => {
-    // DB에 저장되지 않은 임시 습관
     if (!habit.id) {
       setEditHabits((prev) =>
         prev.filter((item) => item.localId !== habit.localId),
@@ -74,15 +130,13 @@ function HabitEditModal({ habits, onClose, onSave }) {
       return;
     }
 
-    // DB에 저장된 기존 습관
     startLoading();
     try {
       await axios.delete(`/study/${id}/habit/${habit.id}/`);
-      // 삭제된 항목만 모달 목록에서 사라지도록
       setEditHabits((prev) =>
         prev.filter((item) => item.localId !== habit.localId),
       );
-      // 기존 습관 하나를 삭제해도 handleLoad가 호출되지 않아 모달이 닫히지 않음
+      openAlert("삭제되었습니다.");
     } catch (error) {
       console.error(error);
       endLoading();
@@ -90,18 +144,14 @@ function HabitEditModal({ habits, onClose, onSave }) {
 
     } finally {
       endLoading();
-      openAlert("삭제되었습니다.");
     }
   };
 
-  const handleAddHabit = async (e) => {
+  const handleAddHabit = (e) => {
     e.preventDefault();
 
     if (newHabitName.trim() === "") return;
 
-    // 이름 수정할 때 id를 대상으로 찾고 있기 때문에
-    // 새로 만들어진 습관의 id는 모두 null이라서 함께 이름이 수정됨
-    // (3번) 새 습관은 실제 DB에 id가 없기 때문에(null) 삭제할 때 id 존재 여부로 처리 방식 나누기
     const newHabit = {
       id: null,
       localId: crypto.randomUUID(),
@@ -118,12 +168,12 @@ function HabitEditModal({ habits, onClose, onSave }) {
     startLoading();
     try {
       const response = await axios.patch(`/study/${id}/habit`, editHabits);
+      openAlert("추가되었습니다.");
     } catch (error) {
       console.log(error);
     } finally {
       onSave();
       endLoading();
-      openAlert("추가되었습니다.");
     }
   };
 
@@ -136,7 +186,7 @@ function HabitEditModal({ habits, onClose, onSave }) {
   };
 
   return (
-    <div className="modal_wrap">
+    <div className="modal_wrap" onClick={handleBackdropClick}>
       <div className="modal edit_habit_modal">
         <div className="inner">
           <div className="modal_title">습관 목록</div>
