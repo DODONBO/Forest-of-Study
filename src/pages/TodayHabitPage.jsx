@@ -53,7 +53,7 @@ function TodayHabitPage() {
             </div>
           </div>
           <CurrentTime />
-          <div className="card_container inner_container">
+          <div className="card_container inner_container today_habit_card">
             <div className="inner">
               <span className="container_title">오늘의 습관</span>
               <button

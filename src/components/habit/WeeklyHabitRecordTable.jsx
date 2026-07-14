@@ -94,9 +94,9 @@ function WeeklyHabitRecordTable({ studyId }) {
         <div className="modal_title left">습관 기록표</div>
         <div className="table_wrap">
           { isLoading ? (
-            <div>습관 목록을 불러오는 중입니다.</div>
+            <div className="habit_state_message">습관 목록을 불러오는 중입니다.</div>
           ) : weeklyHabits.length === 0 ? (
-            <div>아직 습관이 없어요.<br /> 오늘의 습관을 눌러 생성해보세요.</div>
+            <div className="habit_state_message">아직 습관이 없어요.<br /> 오늘의 습관에서 습관을 생성해보세요.</div>
           ) : (
             <>
               <div className="day_wrap">
