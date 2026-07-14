@@ -16,7 +16,6 @@ function TodayHabitPage() {
   const [habits, setHabits] = useState([]);
 
   const handleLoad = async () => {
-    setIsHabitLoading(true);
     startLoading();
 
     try {
