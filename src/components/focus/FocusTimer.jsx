@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react';
 import axios from '../../utils/axios.js';
 import FocusResultToast from './FocusResultToast.jsx';
 import FocusButton from './FocusButton';
+import playIcon from '../../assets/img/ic_play.svg';
+import pauseIcon from '../../assets/img/ic_pause.svg';
+import stopIcon from '../../assets/img/ic_pause (1).svg';
 
 import './FocusTimer.css';
 
@@ -127,6 +130,11 @@ export default function FocusTimer({ studyId, password }) {
 
     return (
         <div className="focus-timer">
+            {isStarted && (
+                <div className="focus-timer__target">
+                    <span>  {formatTime(totalSettingSeconds)} </span>
+                </div>
+            )}
             {isEditing ? (
                 <div
                     className="focus-timer__display focus-timer__display--edit"
@@ -183,15 +191,15 @@ export default function FocusTimer({ studyId, password }) {
 
             <div className="focus-timer__buttons">
                 {!isStarted ? (
-                    <FocusButton onClick={handleStart}>시작</FocusButton>
+                    <FocusButton onClick={handleStart}><img src={playIcon} alt="" />시작</FocusButton>
                 ) : (
                     <>
                         {isRunning ? (
-                            <FocusButton onClick={handlePause}>일시정지</FocusButton>
+                            <FocusButton onClick={handlePause}><img src={pauseIcon} alt="" />일시정지</FocusButton>
                         ) : (
-                            <FocusButton onClick={handleResume}>계속</FocusButton>
+                            <FocusButton onClick={handleResume}><img src={playIcon} alt="" />계속</FocusButton>
                         )}
-                        <FocusButton onClick={handleFinish}>정지</FocusButton>
+                        <FocusButton onClick={handleFinish}><img src={stopIcon} alt="" />정지</FocusButton>
                     </>
                 )}
             </div>
