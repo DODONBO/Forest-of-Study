@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
+
+import axios from '../../utils/axios.js';
 import FocusResultToast from './FocusResultToast.jsx';
 import FocusButton from './FocusButton';
+import playIcon from '../../assets/img/ic_play.svg';
+import pauseIcon from '../../assets/img/ic_pause.svg';
+import stopIcon from '../../assets/img/ic_pause (1).svg';
+
 import './FocusTimer.css';
 
 export default function FocusTimer({ studyId, password }) {
@@ -29,6 +35,12 @@ export default function FocusTimer({ studyId, password }) {
             clearInterval(timerId);
         };
     }, [isRunning]);
+
+    useEffect(() => {
+        if (isRunning && remainingSeconds === 0) {
+            setToast({ resultType: 'goalAchieved' });
+        }
+    }, [remainingSeconds, isRunning]);
 
     // 토스트가 뜨면 3초 뒤 자동으로 사라짐
     useEffect(() => {
@@ -87,26 +99,26 @@ export default function FocusTimer({ studyId, password }) {
         console.log('획득포인트', point);
 
         try {
-            const res = await fetch(`http://localhost:3000/study/${studyId}/focus/point`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password, point }),
+            const response = await axios.patch(
+                `/study/${studyId}/focus/point`,
+                {
+                    password,
+                    point,
+                },
+            );
+
+            console.log('집중 성공:', response.data);
+
+            setToast({
+                resultType: 'success',
+                earnedPoint: point,
             });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                console.log(data.errorCode, data.message);
-                return;
-            }
-
-            console.log('집중 성공:', data);
-            setToast({ resultType: 'success', earnedPoint: point });
-
         } catch (error) {
-            console.error('전송 실패:', error);
+            console.error(
+                '포인트 업데이트 실패:',
+                error.response?.data ?? error,
+            );
         }
-
         handleReset();
     }
 
@@ -118,6 +130,11 @@ export default function FocusTimer({ studyId, password }) {
 
     return (
         <div className="focus-timer">
+            {isStarted && (
+                <div className="focus-timer__target">
+                    <span>  {formatTime(totalSettingSeconds)} </span>
+                </div>
+            )}
             {isEditing ? (
                 <div
                     className="focus-timer__display focus-timer__display--edit"
@@ -174,15 +191,15 @@ export default function FocusTimer({ studyId, password }) {
 
             <div className="focus-timer__buttons">
                 {!isStarted ? (
-                    <FocusButton onClick={handleStart}>시작</FocusButton>
+                    <FocusButton onClick={handleStart}><img src={playIcon} alt="" />시작</FocusButton>
                 ) : (
                     <>
                         {isRunning ? (
-                            <FocusButton onClick={handlePause}>일시정지</FocusButton>
+                            <FocusButton onClick={handlePause}><img src={pauseIcon} alt="" />일시정지</FocusButton>
                         ) : (
-                            <FocusButton onClick={handleResume}>계속</FocusButton>
+                            <FocusButton onClick={handleResume}><img src={playIcon} alt="" />계속</FocusButton>
                         )}
-                        <FocusButton onClick={handleFinish}>정지</FocusButton>
+                        <FocusButton onClick={handleFinish}><img src={stopIcon} alt="" />정지</FocusButton>
                     </>
                 )}
             </div>

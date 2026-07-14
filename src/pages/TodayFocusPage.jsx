@@ -1,66 +1,58 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 
-import Header from '../components/Header.jsx';
+import axios from '../utils/axios.js';
 import FocusTimer from '../components/focus/FocusTimer.jsx';
 import FocusPoint from '../components/focus/FocusPoint.jsx';
+import FocusStatusAlert from '../components/focus/FocusStatusAlert.jsx';
+
 import arrowRightIcon from '../assets/img/ic_arrow_right.svg';
-import FocusResultToast from '../components/focus/FocusResultToast.jsx';
 
 import './TodayFocusPage.css';
 
-const API_BASE_URL = 'http://localhost:3000'; // 임시 API 연결 테스트용, BE 레포 서버 연상태에서 테스트해야함
-
 function FocusPage() {
     const { id: studyId } = useParams();
-    const password = '1234'; // 임시 API 연결 테스트용
+    const location = useLocation();
+    const navigate = useNavigate();
+    const password = location.state?.password;
 
     const [focusData, setFocusData] = useState({
         studyName: '',
         currentPoint: 0,
     });
-
     const [isFocusLoading, setIsFocusLoading] = useState(true);
     const [focusLoadError, setFocusLoadError] = useState('');
 
+    // 비밀번호 없이 들어왔으면 상세 페이지로 돌려보내기
     useEffect(() => {
+        if (!password) {
+            navigate(`/study/${studyId}`, { replace: true });
+        }
+    }, [password, studyId, navigate]);
+
+    useEffect(() => {
+        // 비밀번호가 없으면 타이머를 그리지 않음 (이동하는 동안 빈 화면)
+        if (!password) return null;
+
         async function fetchFocusData() {
             setIsFocusLoading(true);
             setFocusLoadError('');
 
             try {
-                const response = await fetch(
-                    `${API_BASE_URL}/study/${studyId}/focus`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            password,
-                        }),
-                    },
-                );
-
-                const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(
-                        result.message || '오늘의 집중 데이터를 불러오지 못했습니다.',
-                    );
-                }
+                const response = await axios.post(`/study/${studyId}/focus`, {
+                    password,
+                });
 
                 setFocusData({
-                    studyName: result.data.studyName,
-                    currentPoint: result.data.currentPoint,
+                    studyName: response.data.data.studyName,
+                    currentPoint: response.data.data.currentPoint,
                 });
             } catch (error) {
                 console.error('오늘의 집중 조회 오류:', error);
 
                 setFocusLoadError(
-                    error instanceof Error
-                        ? error.message
-                        : '오늘의 집중 데이터를 불러오지 못했습니다.',
+                    error?.response?.data?.message ??
+                    '오늘의 집중 정보를 불러오지 못했습니다.',
                 );
             } finally {
                 setIsFocusLoading(false);
@@ -77,10 +69,20 @@ function FocusPage() {
 
     return (
         <div className="focus-page">
-            {/* 중단, 성공 토스트 임시 확인용, 중단 토스트 확인 필요한 경우 resultType="interrupted"로 변경하면 확인 가능
-            <FocusResultToast
-                resultType="success"
-                earnedPoint={5} /> */}
+            {isFocusLoading && (
+                <FocusStatusAlert
+                    type="loading"
+                    message="오늘의 집중 정보를 불러오고 있습니다."
+                />
+            )}
+
+            {!isFocusLoading && focusLoadError && (
+                <FocusStatusAlert
+                    type="error"
+                    message={focusLoadError}
+                />
+            )}
+
             <div className="focus-page__container">
                 <main className="focus-page__card">
                     <section className="focus-page__study-header">
@@ -96,6 +98,19 @@ function FocusPage() {
                             className="focus-page__navigation"
                             aria-label="스터디 페이지 이동"
                         >
+                            <Link
+                                className="focus-page__navigation-button"
+                                to={`/study/${studyId}`}
+                            >
+                                <span>스터디</span>
+
+                                <img
+                                    className="focus-page__navigation-icon"
+                                    src={arrowRightIcon}
+                                    alt=""
+                                />
+                            </Link>
+
                             <Link
                                 className="focus-page__navigation-button"
                                 to={`/study/${studyId}/habit`}
@@ -131,7 +146,10 @@ function FocusPage() {
 
                         <div className="focus-page__timer-slot">
                             <div className="focus-page__timer-placeholder">
-                                <FocusTimer studyId={studyId} password={password} />
+                                <FocusTimer
+                                    studyId={studyId}
+                                    password={password}
+                                />
                             </div>
                         </div>
                     </section>

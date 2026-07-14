@@ -21,14 +21,22 @@ function RecentStudyList() {
 
     const fetchAll = async () => {
       try {
+        const notFoundIds = [];
+
         const results = await Promise.all(
           ids.map(async (id) => {
             const res = await fetch(`${API_BASE_URL}/study/${id}`);
-            if (!res.ok) return null;
+            if (!res.ok) {
+              notFoundIds.push(id);
+              return null;
+            }
             const json = await res.json();
             return json?.data ?? json;
           }),
         );
+
+        notFoundIds.forEach((id) => removeRecentStudy(id));
+
         setStudies(results.filter(Boolean));
       } catch {
         setStudies([]);
