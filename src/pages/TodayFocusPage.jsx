@@ -61,7 +61,7 @@ function FocusPage() {
   return (
     <div className="focus-page">
 
-      {/* 중단, 성공 토스트 임시 확인용, 중단 토스트 확인 필요한 경우 resultType="interrupted"로 변경하면 확인 가능
+      {/* 중단, 성공 토스트 임시 확인용, 중단 토스트 확인 필요한 경우 resultType="interrupted"로 변경하면 확인 가능, goalAchieved는 집중 추가시 포인트 획득 토스트
             <FocusResultToast
                 resultType="goalAchieved"
                 earnedPoint={5} /> */}
@@ -81,6 +81,17 @@ function FocusPage() {
               className="focus-page__navigation"
               aria-label="스터디 페이지 이동"
             >
+              <Link
+                className="focus-page__navigation-button"
+                to={`/study/${studyId}`}
+              >
+                <span>스터디</span>
+                <img
+                  className="focus-page__navigation-icon"
+                  src={arrowRightIcon}
+                  alt=""
+                />
+              </Link>
               <Link
                 className="focus-page__navigation-button"
                 to={`/study/${studyId}/habit`}
