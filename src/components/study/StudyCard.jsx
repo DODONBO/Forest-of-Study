@@ -92,7 +92,7 @@ function StudyCard({ study }) {
       )}
       <div className="card_title_wrap">
         <span className="card_title">
-          <span style={nicknameStyle}>{study.nickname} </span>의 {study.name}
+          <span style={nicknameStyle}>{study.nickname}</span><span style={{fontWeight: 300}}>의</span> {study.name}
         </span>
         <div className="tag point_tag">
           <img src={tagImg} alt="태그 장식" />

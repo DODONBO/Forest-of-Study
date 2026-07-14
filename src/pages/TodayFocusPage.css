@@ -203,8 +203,8 @@
     gap: 8px;
   }
 
-  .focus-page__navigation-button {
-    font-size: 12px;
+  .focus-page__navigation-button *{
+    font-size: 11pt;
   }
 
   .focus-page__content {
