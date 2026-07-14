@@ -5,19 +5,29 @@ import HabitList from "../components/habit/HabitList.jsx";
 import HabitEditModal from "../components/habit/HabitEditModal.jsx";
 import CurrentTime from "../components/habit/CurrentTime.jsx";
 import arrowRight from "../assets/img/ic_arrow_right.svg";
+import { useLoading } from "../contexts/LoadingContext.jsx";
 
 function TodayHabitPage() {
+  const { startLoading, endLoading } = useLoading();
   const { id } = useParams();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [study, setStudy] = useState([]);
   const [habits, setHabits] = useState([]);
 
   const handleLoad = async () => {
-    const response = await axios.get(`/study/${id}/habit`);
+    startLoading();
 
-    setStudy(response.data);
-    setHabits(response.data.habits);
-    setIsEditModalOpen(false);
+    try {
+      const response = await axios.get(`/study/${id}/habit`);
+
+      setStudy(response.data);
+      setHabits(response.data.habits);
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      endLoading();
+    }
   };
 
   useEffect(() => {

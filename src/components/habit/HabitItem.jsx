@@ -1,13 +1,17 @@
+import { useLoading } from "../../contexts/LoadingContext";
 import axios from "../../utils/axios";
 
 function HabitItem({ habit, habits, studyId, handleLoad }) {
+  const { startLoading, endLoading } = useLoading();
+
   const toggleCheck = async (habitId, data) => {
     const response = await axios.patch(`/study/${studyId}/habit/${habitId}/record`);
-   
+
     return response.data;
   };
 
   const toggleHabit = async (habitId) => {
+    startLoading();
     try {
       const targetHabit = habits.find((habit) => habit.id === habitId);
 
@@ -18,6 +22,8 @@ function HabitItem({ habit, habits, studyId, handleLoad }) {
       handleLoad();
     } catch (error) {
       console.error(error);
+    } finally {
+      endLoading();
     }
   };
 
