@@ -44,6 +44,9 @@ function TodayHabitPage() {
             <span className="container_title">{study.name}</span>
 
             <div className="link_wrap">
+              <Link to={`/study/${id}`} className="link_btn">스터디
+                <img src={arrowRight} alt="링크 버튼 장식" />
+              </Link>
               <Link to={`/study/${id}/focus`} className="link_btn">오늘의 집중
                 <img src={arrowRight} alt="링크 버튼 장식" />
               </Link>
