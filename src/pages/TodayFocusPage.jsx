@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import axios from '../utils/axios.js';
 
+import axios from '../utils/axios.js';
 import FocusTimer from '../components/focus/FocusTimer.jsx';
 import FocusPoint from '../components/focus/FocusPoint.jsx';
-import arrowRightIcon from '../assets/img/ic_arrow_right.svg';
+import FocusStatusAlert from '../components/focus/FocusStatusAlert.jsx';
 
-// 토스트 확인용 import
-import FocusResultToast from '../components/focus/FocusResultToast.jsx';
+import arrowRightIcon from '../assets/img/ic_arrow_right.svg';
 
 import './TodayFocusPage.css';
 
@@ -41,9 +40,8 @@ function FocusPage() {
         console.error('오늘의 집중 조회 오류:', error);
 
         setFocusLoadError(
-          error instanceof Error
-            ? error.message
-            : '오늘의 집중 데이터를 불러오지 못했습니다.',
+          error?.response?.data?.message ??
+            '오늘의 집중 정보를 불러오지 못했습니다.',
         );
       } finally {
         setIsFocusLoading(false);
@@ -60,11 +58,19 @@ function FocusPage() {
 
   return (
     <div className="focus-page">
+      {isFocusLoading && (
+        <FocusStatusAlert
+          type="loading"
+          message="오늘의 집중 정보를 불러오고 있습니다."
+        />
+      )}
 
-      {/* 중단, 성공 토스트 임시 확인용, 중단 토스트 확인 필요한 경우 resultType="interrupted"로 변경하면 확인 가능, goalAchieved는 집중 추가시 포인트 획득 토스트
-            <FocusResultToast
-                resultType="goalAchieved"
-                earnedPoint={5} /> */}
+      {!isFocusLoading && focusLoadError && (
+        <FocusStatusAlert
+          type="error"
+          message={focusLoadError}
+        />
+      )}
 
       <div className="focus-page__container">
         <main className="focus-page__card">
@@ -86,12 +92,14 @@ function FocusPage() {
                 to={`/study/${studyId}`}
               >
                 <span>스터디</span>
+
                 <img
                   className="focus-page__navigation-icon"
                   src={arrowRightIcon}
                   alt=""
                 />
               </Link>
+
               <Link
                 className="focus-page__navigation-button"
                 to={`/study/${studyId}/habit`}
@@ -127,7 +135,10 @@ function FocusPage() {
 
             <div className="focus-page__timer-slot">
               <div className="focus-page__timer-placeholder">
-                <FocusTimer studyId={studyId} password={password} />
+                <FocusTimer
+                  studyId={studyId}
+                  password={password}
+                />
               </div>
             </div>
           </section>
