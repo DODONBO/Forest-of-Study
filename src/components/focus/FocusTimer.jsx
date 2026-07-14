@@ -235,6 +235,7 @@ export default function FocusTimer({ studyId, password }) {
                     </>
                 )}
             </div>
+            <span>space: 시작/일시정지/계속 | esc: 정지/완료</span>
         </div>
     );
 }
