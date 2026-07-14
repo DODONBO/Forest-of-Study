@@ -229,7 +229,7 @@ input:focus { outline-color: var(--brand); }
 }
 
 /* Mobile */
-@media (max-width: 743px) {
+@media (max-width: 800px) {
   * { font-size: 11pt; }
   .inner { width: 100%; padding: 0 16px; }
   #header .inner { width: 100%; padding: 16px; }
@@ -270,7 +270,9 @@ input:focus { outline-color: var(--brand); }
 
 /* 최근 조회한 스터디 (Tablet + Mobile 공통) */
 @media (max-width: 1199px) {
-  .recent_scroll .card_wrap { flex-wrap: nowrap; overflow-x: auto; gap: 16px; }
+  .recent_scroll .card_wrap { flex-wrap: nowrap; overflow-x: auto; gap: 16px; padding-bottom: 20px; }
+  .recent_scroll .card_wrap::-webkit-scrollbar { width: 10px; background-color: #EEF1EC; border-radius: 10px; }
+  .recent_scroll .card_wrap::-webkit-scrollbar-thumb { width: 10px; background-color: #A8B89D; border-radius: 10px; }
   .recent_scroll .card { width: 358px; height: 243px; min-width: 358px; flex-shrink: 0; }
 }
 .sort_menu li:hover,
