@@ -12,7 +12,6 @@ import useAlert from "../components/useAlert.js";
 //const API_BASE_URL = "http://127.0.0.1:3000";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-
 const getStudyErrorMessage = async (response) => {
   try {
     const result = await response.json();
@@ -448,9 +447,24 @@ const StudyDetailPage = () => {
                 placeholder="비밀번호를 입력하세요"
               />
 
-              <div>
-                <button type="button" onClick={handlePasswordCheck}>
-                  {passwordAction === "delete" ? "삭제하기" : "확인"}
+              <div className="password-button-wrapper">
+                <button
+                  type="button"
+                  className="password-confirm-button"
+                  onClick={handlePasswordCheck}
+                >
+                  {passwordAction === "delete"
+                    ? "삭제하기"
+                    : passwordAction === "navigate" &&
+                        nextPath.includes("/edit")
+                      ? "수정하러 가기"
+                      : passwordAction === "navigate" &&
+                          nextPath.includes("/habit")
+                        ? "오늘의 습관으로 가기"
+                        : passwordAction === "navigate" &&
+                            nextPath.includes("/focus")
+                          ? "오늘의 집중으로 가기"
+                          : "확인"}
                 </button>
               </div>
             </div>
