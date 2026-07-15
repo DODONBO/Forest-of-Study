@@ -30,6 +30,7 @@ function StudyListPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const pendingScrollYRef = useRef(null);
+  const sentinelRef = useRef(null);
 
   const rememberScrollPosition = () => {
     pendingScrollYRef.current = window.scrollY;
@@ -100,8 +101,6 @@ function StudyListPage() {
   }, [keyword, sortValue]);
 
   const handleLoadMore = () => {
-    rememberScrollPosition();
-
     const params = {
       page: page + 1,
       pageSize: "6",
@@ -129,6 +128,29 @@ function StudyListPage() {
       })
       .finally(() => setIsLoadingMore(false));
   };
+
+  useEffect(() => {
+    const target = sentinelRef.current;
+    if (!target) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !isLoading && !isLoadingMore) {
+          handleLoadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "200px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [handleLoadMore, isLoading, isLoadingMore, items.length]);
 
   const handleKeywordChange = (nextKeyword) => {
     rememberScrollPosition();
@@ -183,6 +205,9 @@ function StudyListPage() {
             >
               더보기
             </button>
+          )}
+          {!isLoading && !errorMessage && page < totalPages && (
+            <div ref={sentinelRef} style={{ height: "1px" }} />
           )}
         </div>
       </div>
