@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "../utils/axios.js";
 import AlertMessage from "../components/AlertMessage.jsx";
 import useAlert from "../components/useAlert.js";
 import selectedIcon from "../assets/img/ic_bg_selected.png";
 import "./StudyCreatePage.css";
-
-const API_BASE_URL = "http://127.0.0.1:3000";
-//const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const backgroundOptions = [
   {
@@ -67,20 +65,16 @@ const initialErrors = {
   passwordConfirm: "",
 };
 
-const getStudyCreateErrorMessage = async (response) => {
-  try {
-    const result = await response.json();
-
-    return (
-      result?.error?.message || result?.message || "스터디 생성에 실패했습니다."
-    );
-  } catch {
-    return "스터디 생성에 실패했습니다.";
-  }
-};
-
 const normalizeSubmitErrorMessage = (error) => {
-  if (error.message === "Failed to fetch") {
+  const serverMessage =
+    error.response?.data?.error?.message ||
+    error.response?.data?.message;
+
+  if (serverMessage) {
+    return serverMessage;
+  }
+
+  if (error.message === "Failed to fetch" || error.message === "Network Error") {
     return "서버에 연결할 수 없습니다. 백엔드 서버를 확인해주세요.";
   }
 
@@ -158,32 +152,22 @@ function StudyCreatePage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/study`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nickname,
-          name: studyName,
-          description,
-          backgroundType: selectedBackgroundOption.type,
-          backgroundValue: selectedBackgroundOption.value,
-          password,
-          passwordConfirmation: passwordConfirm,
-        }),
+      const response = await axios.post("/study", {
+        nickname,
+        name: studyName,
+        description,
+        backgroundType: selectedBackgroundOption.type,
+        backgroundValue: selectedBackgroundOption.value,
+        password,
+        passwordConfirmation: passwordConfirm,
       });
-
-      if (!response.ok) {
-        throw new Error(await getStudyCreateErrorMessage(response));
-      }
 
       form.reset();
       setErrors(initialErrors);
       setSelectedBackground(backgroundOptions[0].id);
       setVisiblePasswords({ password: false, passwordConfirm: false });
       showAlert("스터디가 만들어졌습니다.");
-      navigate("/");
+      navigate(`/study/${response.data.data.id}`);
     } catch (error) {
       setSubmitErrorMessage(normalizeSubmitErrorMessage(error));
     } finally {

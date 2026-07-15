@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "../utils/axios.js";
 import AlertMessage from "../components/AlertMessage.jsx";
 import useAlert from "../components/useAlert.js";
 import selectedIcon from "../assets/img/ic_bg_selected.png";
 import "./StudyCreatePage.css";
-
-const API_BASE_URL = "http://127.0.0.1:3000";
-//const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const backgroundOptions = [
   { id: "green", type: "color", value: "#E1EDDE", className: "study-create-bg-green" },
@@ -37,18 +35,16 @@ const initialErrors = {
   newPasswordConfirm: "",
 };
 
-const getResponseErrorMessage = async (response) => {
-  try {
-    const result = await response.json();
-
-    return result?.error?.message || result?.message || "스터디 수정에 실패했습니다.";
-  } catch {
-    return "스터디 수정에 실패했습니다.";
-  }
-};
-
 const normalizeSubmitErrorMessage = (error) => {
-  if (error.message === "Failed to fetch") {
+  const serverMessage =
+    error.response?.data?.error?.message ||
+    error.response?.data?.message;
+
+  if (serverMessage) {
+    return serverMessage;
+  }
+
+  if (error.message === "Failed to fetch" || error.message === "Network Error") {
     return "서버에 연결할 수 없습니다. 백엔드 서버를 확인해주세요.";
   }
 
@@ -95,15 +91,10 @@ function StudyEditPage() {
       setPageErrorMessage("");
 
       try {
-        const response = await fetch(`${API_BASE_URL}/study/${id}`, {
+        const response = await axios.get(`/study/${id}`, {
           signal: controller.signal,
         });
-
-        if (!response.ok) {
-          throw new Error(await getResponseErrorMessage(response));
-        }
-
-        const result = await response.json();
+        const result = response.data;
         const study = result?.data;
 
         if (!study) {
@@ -120,7 +111,7 @@ function StudyEditPage() {
         });
         setSelectedBackground(getSelectedBackgroundId(study));
       } catch (error) {
-        if (error.name === "AbortError") {
+        if (error.name === "AbortError" || error.code === "ERR_CANCELED") {
           return;
         }
 
@@ -248,19 +239,8 @@ function StudyEditPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/study/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error(await getResponseErrorMessage(response));
-      }
-
-      const result = await response.json();
+      const response = await axios.patch(`/study/${id}`, payload);
+      const result = response.data;
       const updatedStudy = result?.data;
 
       setFormValues((prevValues) => ({
