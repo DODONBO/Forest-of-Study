@@ -45,13 +45,25 @@ const images = [
 function WeeklyHabitRecordTable({ studyId }) {
   const [weeklyHabits, setWeeklyHabits] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
   const weekNames = ["월", "화", "수", "목", "금", "토", "일"];
 
   const today = new Date();
-  const day = today.getDay();
 
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+  const getMonday = (date = new Date()) => {
+    const result = new Date(date);
+    result.setHours(0, 0, 0, 0);
+
+    const day = result.getDay(); // 일: 0, 월: 1, ... 토: 6
+    const diff = day === 0 ? -6 : 1 - day;
+
+    result.setDate(result.getDate() + diff);
+
+    return result;
+  };
+
+  const monday = getMonday(selectedDate);
 
   const week = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(monday);
@@ -66,17 +78,6 @@ function WeeklyHabitRecordTable({ studyId }) {
         date.getDate() === today.getDate(),
     };
   });
-  const getMonday = (date = new Date()) => {
-    const result = new Date(date);
-    result.setHours(0, 0, 0, 0);
-
-    const day = result.getDay(); // 일: 0, 월: 1, ... 토: 6
-    const diff = day === 0 ? -6 : 1 - day;
-
-    result.setDate(result.getDate() + diff);
-
-    return result;
-  };
 
   const formatDateKey = (date) => {
     return new Intl.DateTimeFormat("en-CA", {
@@ -89,8 +90,15 @@ function WeeklyHabitRecordTable({ studyId }) {
 
   const handleLoad = async () => {
     setIsLoading(true);
+
     try {
-      const response = await axios.get(`/study/${studyId}/habit/weekly`);
+      const date = formatDateKey(selectedDate);
+
+      const response = await axios.get(`/study/${studyId}/habit/weekly`, {
+        params: {
+          date,
+        },
+      });
 
       setWeeklyHabits(response.data);
     } catch (error) {
@@ -101,9 +109,27 @@ function WeeklyHabitRecordTable({ studyId }) {
     }
   };
 
+  const handlePreviousWeek = () => {
+    setSelectedDate((prevDate) => {
+      const newDate = new Date(prevDate);
+      newDate.setDate(newDate.getDate() - 7);
+
+      return newDate;
+    });
+  };
+
+  const handleNextWeek = () => {
+    setSelectedDate((prevDate) => {
+      const newDate = new Date(prevDate);
+      newDate.setDate(newDate.getDate() + 7);
+
+      return newDate;
+    });
+  };
+
   useEffect(() => {
     handleLoad();
-  }, []);
+  }, [studyId, selectedDate]);
 
   return (
     <>
@@ -124,7 +150,7 @@ function WeeklyHabitRecordTable({ studyId }) {
                 style={{rotate: '180deg'}}
                 alt=""
               />
-              <span style={{transform: 'translateY(2px)'}}>이전 주</span>
+              <span style={{transform: 'translateY(2px)'}} onClick={handlePreviousWeek}>이전 주</span>
             </button>
 
             <button
@@ -132,7 +158,7 @@ function WeeklyHabitRecordTable({ studyId }) {
               className="focus-page__navigation-button"
               onClick={() => console.log(1)}
             >
-              <span style={{transform: 'translateY(2px)'}}>다음 주</span>
+              <span style={{transform: 'translateY(2px)'}} onClick={handleNextWeek}>다음 주</span>
 
               <img
                 className="focus-page__navigation-icon"
