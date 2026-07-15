@@ -1,10 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import axios from "../utils/axios";
 import StudyCard from "../components/study/StudyCard";
 import RecentStudyList from "../components/study/RecentStudyList";
 import SearchSortBar from "../components/study/SearchSortBar";
-
-//const API_BASE_URL = "http://127.0.0.1:3000";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const normalizeStudyItems = (data) => {
   if (Array.isArray(data)) {
@@ -32,6 +30,7 @@ function StudyListPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const pendingScrollYRef = useRef(null);
+  const sentinelRef = useRef(null);
 
   const rememberScrollPosition = () => {
     pendingScrollYRef.current = window.scrollY;
@@ -55,33 +54,27 @@ function StudyListPage() {
     const controller = new AbortController();
 
     const fetchStudies = async (targetPage, replace) => {
-      const params = new URLSearchParams({
-        page: String(targetPage),
+      const params = {
+        page: targetPage,
         pageSize: "6",
         sort: sortValue,
-      });
+      };
       const trimmedKeyword = keyword.trim();
 
       if (trimmedKeyword) {
-        params.set("keyword", trimmedKeyword);
+        params.keyword = trimmedKeyword;
       }
 
       setIsLoading(true);
       setErrorMessage("");
 
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/study?${params.toString()}`,
-          {
-            signal: controller.signal,
-          },
-        );
+        const response = await axios.get("/study", {
+          params,
+          signal: controller.signal,
+        });
 
-        if (!response.ok) {
-          throw new Error("스터디 목록을 불러오지 못했습니다.");
-        }
-
-        const data = await response.json();
+        const data = response.data;
         const newItems = normalizeStudyItems(data);
         const tp = data?.data?.totalPages ?? data?.totalPages ?? 1;
 
@@ -89,7 +82,7 @@ function StudyListPage() {
         setTotalPages(tp);
         setPage(targetPage);
       } catch (error) {
-        if (error.name === "AbortError") {
+        if (axios.isCancel(error) || error.name === "CanceledError") {
           return;
         }
 
@@ -108,25 +101,21 @@ function StudyListPage() {
   }, [keyword, sortValue]);
 
   const handleLoadMore = () => {
-    rememberScrollPosition();
-
-    const params = new URLSearchParams({
-      page: String(page + 1),
+    const params = {
+      page: page + 1,
       pageSize: "6",
       sort: sortValue,
-    });
+    };
     const trimmedKeyword = keyword.trim();
-    if (trimmedKeyword) params.set("keyword", trimmedKeyword);
+    if (trimmedKeyword) params.keyword = trimmedKeyword;
 
     setIsLoadingMore(true);
     setErrorMessage("");
 
-    fetch(`${API_BASE_URL}/study?${params.toString()}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("스터디 목록을 불러오지 못했습니다.");
-        return res.json();
-      })
-      .then((data) => {
+    axios
+      .get("/study", { params })
+      .then((response) => {
+        const data = response.data;
         const newItems = normalizeStudyItems(data);
         const tp = data?.data?.totalPages ?? data?.totalPages ?? 1;
 
@@ -139,6 +128,29 @@ function StudyListPage() {
       })
       .finally(() => setIsLoadingMore(false));
   };
+
+  useEffect(() => {
+    const target = sentinelRef.current;
+    if (!target) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !isLoading && !isLoadingMore) {
+          handleLoadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "200px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [handleLoadMore, isLoading, isLoadingMore, items.length]);
 
   const handleKeywordChange = (nextKeyword) => {
     rememberScrollPosition();
@@ -193,6 +205,9 @@ function StudyListPage() {
             >
               더보기
             </button>
+          )}
+          {!isLoading && !errorMessage && page < totalPages && (
+            <div ref={sentinelRef} style={{ height: "1px" }} />
           )}
         </div>
       </div>
