@@ -1,7 +1,7 @@
 .focus-result-toast {
   position: fixed;
   left: 50%;
-  bottom: 40px;
+  top: 18px;
   z-index: 30;
 
   display: inline-flex;
@@ -79,7 +79,7 @@
 /* 모바일 */
 @media (max-width: 767px) {
   .focus-result-toast {
-    bottom: 24px;
+    top: 80px;
 
     width: max-content;
     max-width: calc(100vw - 32px);
