@@ -38,7 +38,7 @@ const images = [
   icon15,
   icon16,
   icon17,
-  icon18,
+  icon18
 ];
 
 function WeeklyHabitRecordTable({ studyId }) {
