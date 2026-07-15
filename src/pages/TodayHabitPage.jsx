@@ -7,6 +7,7 @@ import CurrentTime from "../components/habit/CurrentTime.jsx";
 import arrowRight from "../assets/img/ic_arrow_right.svg";
 import { useLoading } from "../contexts/LoadingContext.jsx";
 
+
 function TodayHabitPage() {
   const { startLoading, endLoading } = useLoading();
   const [isHabitLoading, setIsHabitLoading] = useState(true)
