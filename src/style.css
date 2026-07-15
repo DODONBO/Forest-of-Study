@@ -142,7 +142,7 @@ input:focus { outline-color: var(--brand); }
 .search_sort_wrap { display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 24px; }
 .search_box { position: relative; display: flex; flex-direction: row; align-items: center; width: 335px; height: 42px; padding: 12px 20px; gap: 10px; border-radius: 15px; border: 1px solid var(--gray); background: var(--wh); }
 .search_box .search_icon img { width: 18px; height: 18px; }
-.search_box input { flex: 1; border: none; outline: none; color: var(--dark-gray); font-family: 'Okticon'; font-size: 16px; font-style: normal; font-weight: 400; line-height: normal; }
+.search_box input { flex: 1; min-width: 0; border: none; outline: none; color: var(--dark-gray); font-family: 'Okticon'; font-size: 16px; font-style: normal; font-weight: 400; line-height: normal; }
 .search_box input::placeholder { color: var(--dark-gray); font-family: 'Okticon'; font-size: 16px; font-style: normal; font-weight: 400; line-height: normal; }
 
 .sort_dropdown { position: relative; }
