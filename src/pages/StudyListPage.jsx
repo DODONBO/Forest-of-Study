@@ -82,7 +82,7 @@ function StudyListPage() {
         setTotalPages(tp);
         setPage(targetPage);
       } catch (error) {
-        if (axios.isCancel(error) || error.name === "CanceledError") {
+        if (error.name === "CanceledError") {
           return;
         }
 
