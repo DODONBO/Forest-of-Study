@@ -9,6 +9,8 @@ import StudyEditPage from "./pages/StudyEditPage";
 import TodayFocusPage from "./pages/TodayFocusPage.jsx";
 import { LoadingProvider } from "./contexts/LoadingContext.jsx";
 import GlobalLoading from "./components/GlobalLoading.jsx";
+import SignInPage from "./pages/SignInPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
 
 function Main() {
   return (
@@ -18,6 +20,9 @@ function Main() {
           <Routes>
             <Route path="/" element={<App />}>
               <Route index element={<StudyListPage />} />
+              <Route path="signin" element={<SignInPage />} />
+              <Route path="home" element={<StudyListPage />} />
+              <Route path="user/dashboard" element={<DashboardPage />} />
               <Route path="study-create" element={<StudyCreatePage />} />
               <Route path="study/:id" element={<StudyDetailPage />} />
               <Route path="study/:id/edit" element={<StudyEditPage />} />
