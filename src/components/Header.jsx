@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import logoImage from "../assets/img/logo.png";
+import userIcon from "../assets/img/ic_user.svg";
 import { useState } from "react";
+import UserMenu from "./user/UserMenu";
 
 function Header() {
   const { pathname } = useLocation();
@@ -54,15 +56,10 @@ function Header() {
             </Link> */}
             <div className="user_wrap">
               <div className="user_pic_wrap" onClick={toggleIsUserMenuOpen}>
+                <img src={userIcon} alt="유저 아이콘" />
               </div>
               {isUserMenuOpen && (
-                <div className="user_menu_wrap" onClick={toggleIsUserMenuOpen}>
-                  <div className="user_menu_container" onClick={(e) => e.stopPropagation()}>
-                    <div className="user_menu">대시보드</div>
-                    <div className="user_menu">스터디 등록</div>
-                    <div className="user_menu red">로그아웃</div>
-                  </div>
-                </div>
+                <UserMenu toggleIsUserMenuOpen={toggleIsUserMenuOpen}/>
               )}
             </div>
         </div>
