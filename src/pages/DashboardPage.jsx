@@ -1,20 +1,64 @@
 import { Link } from "react-router-dom";
 import { useLoading } from "../contexts/LoadingContext";
 import axios from "../utils/axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 function DashboardPage() {
   const { startLoading, endLoading } = useLoading();
+
+  const [todayStatus, setTodayStatus] = useState([]);
+  const [weeklyFocus, setWeeklyFocus] = useState([]);
+  const [maxFocusMinutes, setMaxFocusMinutes] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const handleLoad = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
     startLoading();
 
     try {
-      const response = await axios.get(`/api/users/dashboard`);
+      const response = await axios.get("/api/users/dashboard", {
+        headers: {
+          "x-user-id": "fb77f291-55f3-4a44-9eb5-9a7d46092876",
+        },
+      });
 
-      console.log(response);
+      // 서버가 { todayStatus, weeklyFocus } 또는
+      // { data: { todayStatus, weeklyFocus } } 형태로 응답하는 경우 모두 처리합니다.
+      const data = response.data?.data ?? response.data ?? {};
+
+      const loadedTodayStatus = Array.isArray(data.todayStatus)
+        ? data.todayStatus
+        : [];
+
+      const loadedWeeklyFocus = Array.isArray(data.weeklyFocus)
+        ? data.weeklyFocus
+        : [];
+
+      const loadedMaxFocusMinutes =
+        loadedWeeklyFocus.length > 0
+          ? Math.max(
+              ...loadedWeeklyFocus.map((item) => Number(item?.minutes ?? 0)),
+            )
+          : 0;
+
+      setTodayStatus(loadedTodayStatus);
+      setWeeklyFocus(loadedWeeklyFocus);
+      setMaxFocusMinutes(loadedMaxFocusMinutes);
     } catch (error) {
-      console.log(error);
+      console.error("대시보드 조회 실패:", error);
+      console.error("서버 응답:", error.response?.data);
+
+      setTodayStatus([]);
+      setWeeklyFocus([]);
+      setMaxFocusMinutes(0);
+      setErrorMessage(
+        error.response?.data?.message ??
+          "대시보드 정보를 불러오지 못했습니다.",
+      );
     } finally {
+      setIsLoading(false);
       endLoading();
     }
   };
@@ -22,43 +66,6 @@ function DashboardPage() {
   useEffect(() => {
     handleLoad();
   }, []);
-
-  const todayStatus = [
-    {
-      id: "focus",
-      label: "오늘의 집중",
-      description: "오늘 기록한 집중 시간이에요",
-      icon: "⏱",
-      type: "time",
-      hour: "03",
-      minute: "20",
-      footerLabel: "어제보다",
-      footerValue: "+40분",
-      footerClassName: "dashboard_increase",
-    },
-    {
-      id: "habit",
-      label: "완료한 습관",
-      description: "오늘의 습관 달성 현황이에요",
-      icon: "✓",
-      type: "progress",
-      current: 5,
-      total: 8,
-      progress: Math.round((5 / 8) * 100),
-      footerLabel: "달성률",
-      footerValue: "63%",
-    },
-    {
-      id: "streak",
-      label: "연속 달성",
-      description: "꾸준히 공부한 날짜예요",
-      icon: "🔥",
-      type: "streak",
-      value: 3,
-      footerLabel: "최고 기록",
-      footerValue: "12일",
-    },
-  ];
 
   const studies = [
     {
@@ -86,18 +93,6 @@ function DashboardPage() {
       totalHabit: 3,
     },
   ];
-
-  const weeklyFocus = [
-    { day: "월", minutes: 120 },
-    { day: "화", minutes: 180 },
-    { day: "수", minutes: 80 },
-    { day: "목", minutes: 200 },
-    { day: "금", minutes: 140 },
-    { day: "토", minutes: 60 },
-    { day: "일", minutes: 0 },
-  ];
-
-  const maxFocusMinutes = Math.max(...weeklyFocus.map((item) => item.minutes));
 
   const achievements = [
     {
@@ -146,18 +141,35 @@ function DashboardPage() {
             </div>
 
             <div className="card_wrap dashboard_card_wrap">
-              {todayStatus.map((status) => (
-                <div className="card dashboard_card" key={status.id}>
+              {isLoading && <p>오늘의 현황을 불러오는 중입니다.</p>}
+
+              {!isLoading && errorMessage && (
+                <div className="dashboard_error">
+                  <p>{errorMessage}</p>
+                  <button type="button" onClick={handleLoad}>
+                    다시 불러오기
+                  </button>
+                </div>
+              )}
+
+              {!isLoading && !errorMessage && todayStatus.length === 0 && (
+                <p>오늘의 현황 데이터가 없습니다.</p>
+              )}
+
+              {!isLoading &&
+                !errorMessage &&
+                todayStatus.map((status, index) => (
+                <div className="card dashboard_card" key={status?.id ?? index}>
                   <div className="dashboard_card_header">
                     <div>
-                      <div className="dashboard_card_label">{status.label}</div>
+                      <div className="dashboard_card_label">{status?.label ?? ""}</div>
 
                       <p className="dashboard_card_description">
-                        {status.description}
+                        {status?.description ?? ""}
                       </p>
                     </div>
 
-                    <div className="dashboard_card_icon">{status.icon}</div>
+                    <div className="dashboard_card_icon">{status?.icon ?? ""}</div>
                   </div>
 
                   {status.type === "time" && (
@@ -182,7 +194,7 @@ function DashboardPage() {
                       <div className="dashboard_progress">
                         <div
                           className="dashboard_progress_bar"
-                          style={{ width: `${status.progress}%` }}
+                          style={{ width: `${Number(status?.progress ?? 0)}%` }}
                         />
                       </div>
                     </>
@@ -283,14 +295,23 @@ function DashboardPage() {
                 </div>
 
                 <div className="dashboard_weekly_chart">
-                  {weeklyFocus.map((item) => {
+                  {isLoading && <p>집중 기록을 불러오는 중입니다.</p>}
+
+                  {!isLoading && !errorMessage && weeklyFocus.length === 0 && (
+                    <p>이번 주 집중 기록이 없습니다.</p>
+                  )}
+
+                  {!isLoading &&
+                    !errorMessage &&
+                    weeklyFocus.map((item, index) => {
+                    const minutes = Number(item?.minutes ?? 0);
                     const barHeight =
-                      maxFocusMinutes === 0
-                        ? 0
-                        : (item.minutes / maxFocusMinutes) * 100;
+                      maxFocusMinutes > 0
+                        ? (minutes / maxFocusMinutes) * 100
+                        : 0;
 
                     return (
-                      <div className="dashboard_chart_item" key={item.day}>
+                      <div className="dashboard_chart_item" key={item?.day ?? index}>
                         <div className="dashboard_chart_bar_wrap">
                           <div
                             className="dashboard_chart_bar"
@@ -298,7 +319,7 @@ function DashboardPage() {
                           />
                         </div>
 
-                        <span>{item.day}</span>
+                        <span>{item?.day ?? "-"}</span>
                       </div>
                     );
                   })}
