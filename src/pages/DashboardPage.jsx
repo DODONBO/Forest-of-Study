@@ -1,6 +1,28 @@
 import { Link } from "react-router-dom";
+import { useLoading } from "../contexts/LoadingContext";
+import axios from "../utils/axios";
+import { useEffect } from "react";
 
 function DashboardPage() {
+  const { startLoading, endLoading } = useLoading();
+  const handleLoad = async () => {
+    startLoading();
+
+    try {
+      const response = await axios.get(`/api/users/dashboard`);
+
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      endLoading();
+    }
+  };
+
+  useEffect(() => {
+    handleLoad();
+  }, []);
+
   const todayStatus = [
     {
       id: "focus",
@@ -75,9 +97,7 @@ function DashboardPage() {
     { day: "일", minutes: 0 },
   ];
 
-  const maxFocusMinutes = Math.max(
-    ...weeklyFocus.map((item) => item.minutes),
-  );
+  const maxFocusMinutes = Math.max(...weeklyFocus.map((item) => item.minutes));
 
   const achievements = [
     {
@@ -130,18 +150,14 @@ function DashboardPage() {
                 <div className="card dashboard_card" key={status.id}>
                   <div className="dashboard_card_header">
                     <div>
-                      <div className="dashboard_card_label">
-                        {status.label}
-                      </div>
+                      <div className="dashboard_card_label">{status.label}</div>
 
                       <p className="dashboard_card_description">
                         {status.description}
                       </p>
                     </div>
 
-                    <div className="dashboard_card_icon">
-                      {status.icon}
-                    </div>
+                    <div className="dashboard_card_icon">{status.icon}</div>
                   </div>
 
                   {status.type === "time" && (
@@ -209,9 +225,7 @@ function DashboardPage() {
                 >
                   <div className="dashboard_card_header">
                     <div>
-                      <div className="dashboard_card_label">
-                        {study.name}
-                      </div>
+                      <div className="dashboard_card_label">{study.name}</div>
 
                       <p className="dashboard_card_description">
                         {study.description}
@@ -244,183 +258,170 @@ function DashboardPage() {
               ))}
             </div>
           </div>
-                  <div className="card_container dashboard_activity_container inner_container">
-          <div className="container_title">
-            <span className="bold">활동 요약</span>
-          </div>
+          <div className="card_container dashboard_activity_container inner_container">
+            <div className="container_title">
+              <span className="bold">활동 요약</span>
+            </div>
 
-          <div className="dashboard_activity_grid">
-            <div className="card dashboard_card dashboard_activity_card dashboard_weekly_card">
-              <div className="dashboard_card_header">
-                <div>
-                  <div className="dashboard_card_label">
-                    이번 주 집중
+            <div className="dashboard_activity_grid">
+              <div className="card dashboard_card dashboard_activity_card dashboard_weekly_card">
+                <div className="dashboard_card_header">
+                  <div>
+                    <div className="dashboard_card_label">이번 주 집중</div>
+
+                    <p className="dashboard_card_description">
+                      요일별 집중 시간을 확인해 보세요
+                    </p>
                   </div>
 
-                  <p className="dashboard_card_description">
-                    요일별 집중 시간을 확인해 보세요
-                  </p>
+                  <div className="dashboard_card_icon">📊</div>
                 </div>
 
-                <div className="dashboard_card_icon">📊</div>
+                <div className="dashboard_weekly_total">
+                  <strong>13</strong>
+                  <span>시간 00분</span>
+                </div>
+
+                <div className="dashboard_weekly_chart">
+                  {weeklyFocus.map((item) => {
+                    const barHeight =
+                      maxFocusMinutes === 0
+                        ? 0
+                        : (item.minutes / maxFocusMinutes) * 100;
+
+                    return (
+                      <div className="dashboard_chart_item" key={item.day}>
+                        <div className="dashboard_chart_bar_wrap">
+                          <div
+                            className="dashboard_chart_bar"
+                            style={{ height: `${barHeight}%` }}
+                          />
+                        </div>
+
+                        <span>{item.day}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="dashboard_card_footer">
+                  <span>지난주보다</span>
+                  <strong className="dashboard_increase">+2시간 30분</strong>
+                </div>
               </div>
 
-              <div className="dashboard_weekly_total">
-                <strong>13</strong>
-                <span>시간 00분</span>
-              </div>
+              <div className="card dashboard_card dashboard_activity_card">
+                <div className="dashboard_card_header">
+                  <div>
+                    <div className="dashboard_card_label">최근 획득한 업적</div>
 
-              <div className="dashboard_weekly_chart">
-                {weeklyFocus.map((item) => {
-                  const barHeight =
-                    maxFocusMinutes === 0
-                      ? 0
-                      : (item.minutes / maxFocusMinutes) * 100;
+                    <p className="dashboard_card_description">
+                      새롭게 달성한 기록이에요
+                    </p>
+                  </div>
 
-                  return (
+                  <div className="dashboard_card_icon">🏆</div>
+                </div>
+
+                <div className="dashboard_achievement_list">
+                  {achievements.map((achievement) => (
                     <div
-                      className="dashboard_chart_item"
-                      key={item.day}
+                      className="dashboard_achievement_item"
+                      key={achievement.id}
                     >
-                      <div className="dashboard_chart_bar_wrap">
-                        <div
-                          className="dashboard_chart_bar"
-                          style={{ height: `${barHeight}%` }}
-                        />
+                      <div className="dashboard_achievement_icon">
+                        {achievement.icon}
                       </div>
 
-                      <span>{item.day}</span>
+                      <div>
+                        <strong>{achievement.name}</strong>
+                        <p>{achievement.description}</p>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              <div className="dashboard_card_footer">
-                <span>지난주보다</span>
-                <strong className="dashboard_increase">
-                  +2시간 30분
-                </strong>
-              </div>
-            </div>
-
-            <div className="card dashboard_card dashboard_activity_card">
-              <div className="dashboard_card_header">
-                <div>
-                  <div className="dashboard_card_label">
-                    최근 획득한 업적
-                  </div>
-
-                  <p className="dashboard_card_description">
-                    새롭게 달성한 기록이에요
-                  </p>
+                  ))}
                 </div>
 
-                <div className="dashboard_card_icon">🏆</div>
+                <div className="dashboard_card_footer">
+                  <span>전체 업적</span>
+                  <strong>5개</strong>
+                </div>
               </div>
 
-              <div className="dashboard_achievement_list">
-                {achievements.map((achievement) => (
+              <div className="card dashboard_card dashboard_activity_card">
+                <div className="dashboard_card_header">
+                  <div>
+                    <div className="dashboard_card_label">즐겨찾는 스터디</div>
+
+                    <p className="dashboard_card_description">
+                      자주 방문하는 스터디예요
+                    </p>
+                  </div>
+
+                  <div className="dashboard_card_icon">⭐</div>
+                </div>
+
+                <div className="dashboard_favorite_list">
+                  {favoriteStudies.map((study) => (
+                    <Link
+                      to={`/study/${study.id}`}
+                      className="dashboard_favorite_item"
+                      key={study.id}
+                    >
+                      <div>
+                        <strong>{study.name}</strong>
+
+                        <p>
+                          {study.category} · 참여자 {study.members}명
+                        </p>
+                      </div>
+
+                      <span>›</span>
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="dashboard_card_footer">
+                  <span>즐겨찾기</span>
+                  <strong>{favoriteStudies.length}개</strong>
+                </div>
+              </div>
+
+              <div className="card dashboard_card dashboard_activity_card">
+                <div className="dashboard_card_header">
+                  <div>
+                    <div className="dashboard_card_label">이번 주 목표</div>
+
+                    <p className="dashboard_card_description">
+                      목표까지 조금만 더 힘내세요
+                    </p>
+                  </div>
+
+                  <div className="dashboard_card_icon">🎯</div>
+                </div>
+
+                <div className="dashboard_goal_value">
+                  <strong>72</strong>
+                  <span>%</span>
+                </div>
+
+                <div className="dashboard_progress dashboard_goal_progress">
                   <div
-                    className="dashboard_achievement_item"
-                    key={achievement.id}
-                  >
-                    <div className="dashboard_achievement_icon">
-                      {achievement.icon}
-                    </div>
-
-                    <div>
-                      <strong>{achievement.name}</strong>
-                      <p>{achievement.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="dashboard_card_footer">
-                <span>전체 업적</span>
-                <strong>5개</strong>
-              </div>
-            </div>
-
-            <div className="card dashboard_card dashboard_activity_card">
-              <div className="dashboard_card_header">
-                <div>
-                  <div className="dashboard_card_label">
-                    즐겨찾는 스터디
-                  </div>
-
-                  <p className="dashboard_card_description">
-                    자주 방문하는 스터디예요
-                  </p>
+                    className="dashboard_progress_bar"
+                    style={{ width: "72%" }}
+                  />
                 </div>
 
-                <div className="dashboard_card_icon">⭐</div>
-              </div>
+                <p className="dashboard_goal_description">
+                  이번 주 목표 18시간 중 13시간을 달성했어요.
+                </p>
 
-              <div className="dashboard_favorite_list">
-                {favoriteStudies.map((study) => (
-                  <Link
-                    to={`/study/${study.id}`}
-                    className="dashboard_favorite_item"
-                    key={study.id}
-                  >
-                    <div>
-                      <strong>{study.name}</strong>
-
-                      <p>
-                        {study.category} · 참여자 {study.members}명
-                      </p>
-                    </div>
-
-                    <span>›</span>
-                  </Link>
-                ))}
-              </div>
-
-              <div className="dashboard_card_footer">
-                <span>즐겨찾기</span>
-                <strong>{favoriteStudies.length}개</strong>
-              </div>
-            </div>
-
-            <div className="card dashboard_card dashboard_activity_card">
-              <div className="dashboard_card_header">
-                <div>
-                  <div className="dashboard_card_label">
-                    이번 주 목표
-                  </div>
-
-                  <p className="dashboard_card_description">
-                    목표까지 조금만 더 힘내세요
-                  </p>
+                <div className="dashboard_card_footer">
+                  <span>남은 목표</span>
+                  <strong>5시간</strong>
                 </div>
-
-                <div className="dashboard_card_icon">🎯</div>
-              </div>
-
-              <div className="dashboard_goal_value">
-                <strong>72</strong>
-                <span>%</span>
-              </div>
-
-              <div className="dashboard_progress dashboard_goal_progress">
-                <div
-                  className="dashboard_progress_bar"
-                  style={{ width: "72%" }}
-                />
-              </div>
-
-              <p className="dashboard_goal_description">
-                이번 주 목표 18시간 중 13시간을 달성했어요.
-              </p>
-
-              <div className="dashboard_card_footer">
-                <span>남은 목표</span>
-                <strong>5시간</strong>
               </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
     </section>
