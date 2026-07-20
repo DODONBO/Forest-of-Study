@@ -20,7 +20,7 @@ function DashboardPage() {
     try {
       const response = await axios.get("/api/users/dashboard", {
         headers: {
-          "x-user-id": "fb77f291-55f3-4a44-9eb5-9a7d46092876",
+          "x-user-id": "3e4cad0c-d20f-42c7-8b34-93a7cdddffe1",
         },
       });
 
