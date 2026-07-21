@@ -1566,8 +1566,9 @@ input:focus { outline-color: var(--brand); }
 .user_menu_wrap { width: 100vw; height: 100vh; position: absolute; left: 0; top: 0; }
 .user_menu_container { width: 200px; height: fit-content; position: absolute; right: calc(50vw - 600px); top: 100px; background-color: var(--wh); z-index: 150; border-radius: 15px; border: 1px solid var(--gray); box-shadow: 2px 2px 30px rgba(134, 132, 123, 0.15); }
 .user_menu { display: block; width: 100%; text-align: center; line-height: 50px; color: var(--dark-gray); font-size: 20px; border-bottom: 1px solid var(--gray); padding: 6px 0; cursor: pointer; transition: 0.3s; overflow: hidden; }
+.user_menu[type="button"] { border-top: none; border-right: none; border-left: none; background-color: transparent; font-family: inherit; }
 .user_menu:hover { background-color: #f1f0ee63; }
-.user_menu:last-of-type { border-bottom: none; }
+.user_menu:last-child { border-bottom: none; }
 .user_menu.red { color: var(--red); }
 /* ===========================
    Dark Mode Toggle
