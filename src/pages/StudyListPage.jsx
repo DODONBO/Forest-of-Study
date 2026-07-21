@@ -168,7 +168,7 @@ function StudyListPage() {
       <div className="inner">
         <div className="study-list-login-action">
           <Link className="study-list-login-button" to="/signin">
-            임시 로그인
+            로그인
           </Link>
         </div>
 
