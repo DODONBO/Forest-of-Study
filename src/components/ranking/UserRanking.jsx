@@ -29,6 +29,9 @@ function UserRanking({ onLoadComplete }) {
     (user) => user.rank > 3 && user.rank <= 10
   );
 
+  const firstPlaceCount =
+    userRanking.filter((user) => user.rank === 1).length;
+
   useEffect(() => {
     getUserRanking();
   }, []);
@@ -47,10 +50,10 @@ function UserRanking({ onLoadComplete }) {
   return (
     <section className="ranking-list">
       {userRanking.length === 0 ? (
-        <p>이번 주 유저 랭킹 기록이 없습니다</p>
+        <p className="ranking-empty">이번 주 유저 랭킹 기록이 없습니다</p>
       ) : (
         <>
-          <ul className="top-ranking-list">
+          <ul className={`top-ranking-list first-count-${firstPlaceCount}`}>
             {topUserRanking.map((user) => (
               <li key={user.id} className={`top-ranking-item rank-${user.rank}`}>
                 <p className="top-ranking-rank">{user.rank}위</p>

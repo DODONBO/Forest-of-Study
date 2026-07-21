@@ -49,7 +49,7 @@ function PreviousRanking({ onLoadComplete }) {
 
       <div className="previous-ranking-list">
         <div className="previous-ranking-card">
-          <h3>스터디 1위</h3>
+          <h3>스터디 {previousRanking.studies.length > 1 ? "공동 1위" : "1위"}</h3>
 
           {previousRanking.studies.length > 0 ? (
             previousRanking.studies.map((study) => (
@@ -63,12 +63,12 @@ function PreviousRanking({ onLoadComplete }) {
               </div>
             ))
           ) : (
-            <p>지난주 랭킹 기록이 없습니다</p>
+            <p className="previous-ranking-empty">지난주 랭킹 기록이 없습니다</p>
           )}
         </div>
 
         <div className="previous-ranking-card">
-          <h3>유저 1위</h3>
+          <h3>유저 {previousRanking.users.length > 1 ? "공동 1위" : "1위"}</h3>
 
           {previousRanking.users.length > 0 ? (
             previousRanking.users.map((user) => (
@@ -82,7 +82,7 @@ function PreviousRanking({ onLoadComplete }) {
               </div>
             ))
           ) : (
-            <p>지난주 랭킹 기록이 없습니다</p>
+            <p className="previous-ranking-empty">지난주 랭킹 기록이 없습니다</p>
           )}
         </div>
       </div>

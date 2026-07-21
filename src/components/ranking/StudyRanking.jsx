@@ -29,6 +29,9 @@ function StudyRanking({ onLoadComplete }) {
     (study) => study.rank > 3 && study.rank <= 10
   );
 
+  const firstPlaceCount 
+    = studyRanking.filter((study) => study.rank === 1).length;
+
   useEffect(() => {
     getStudyRanking();
   }, []);
@@ -47,10 +50,10 @@ function StudyRanking({ onLoadComplete }) {
   return (
     <section className="ranking-list">
       {studyRanking.length === 0 ? (
-        <p>이번 주 스터디 랭킹 기록이 없습니다</p>
+        <p className="ranking-empty">이번 주 스터디 랭킹 기록이 없습니다</p>
       ) : (
         <>
-          <ul className="top-ranking-list">
+          <ul className={`top-ranking-list first-count-${firstPlaceCount}`}>
             {topStudyRanking.map((study) => (
               <li key={study.id} className={`top-ranking-item rank-${study.rank}`}>
                 <p className="top-ranking-rank">{study.rank}위</p>
