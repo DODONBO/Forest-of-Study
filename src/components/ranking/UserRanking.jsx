@@ -21,19 +21,28 @@ function UserRanking() {
   }, []);
 
   return (
-    <div>
-      <span>유저 랭킹</span>
-      {topUserRanking.map((user) => (
-        <div key={user.id}>
-          {user.rank}위 {user.nickname} {user.point}P
-        </div>
-      ))}
-      {otherUserRanking.map((user) => (
-        <div key={user.id}>
-          {user.rank}위 {user.nickname} {user.point}P
-        </div>
-      ))}
-    </div>
+    <section className="ranking-list">
+      <ul className="top-ranking-list">
+        {topUserRanking.map((user) => (
+          <li key={user.id} className={`top-ranking-item rank-${user.rank}`}>
+            <p className="top-ranking-rank">{user.rank}위</p>
+            <p className="top-ranking-name">{user.nickname}</p>
+            <p className="top-ranking-point">{user.point}P</p>
+          </li>
+        ))}
+      </ul>
+      
+      <ul className="other-ranking-list">
+        {otherUserRanking.map((user) => (
+          <li key={user.id} className="other-ranking-item">
+            <p>{user.rank}위</p>
+            <p>{user.nickname}</p>
+            <p>{user.point}P</p>
+          </li>
+        ))}
+      </ul>
+      
+    </section>
   )
 }
 

@@ -21,19 +21,26 @@ function StudyRanking() {
   }, []);
 
   return (
-    <div>
-      <span>스터디 랭킹</span>
-      {topStudyRanking.map((study) => (
-        <div key={study.id}>
-          {study.rank}위 {study.name} {study.point}P
-        </div>
-      ))}
-      {otherStudyRanking.map((study) => (
-        <div key={study.id}>
-          {study.rank}위 {study.name} {study.point}P
-        </div>
-      ))}
-    </div>
+    <section className="ranking-list">
+      <ul className="top-ranking-list">
+        {topStudyRanking.map((study) => (
+          <li key={study.id} className={`top-ranking-item rank-${study.rank}`}>
+            <p className="top-ranking-rank">{study.rank}위</p>
+            <p className="top-ranking-name">{study.name}</p>
+            <p className="top-ranking-point">{study.point}P</p>
+          </li>
+        ))}
+      </ul>
+      <ul className="other-ranking-list">
+        {otherStudyRanking.map((study) => (
+          <li key={study.id} className="other-ranking-item">
+            <p>{study.rank}위</p>
+            <p>{study.name}</p>
+            <p>{study.point}P</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 

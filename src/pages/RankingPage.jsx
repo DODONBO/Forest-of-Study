@@ -67,30 +67,42 @@ function RankingPage() {
   }, []);
 
   return (
-    <section>
-      <div>
-        <span>이번 주 랭킹</span>
-        <div>
-          <span>집계 기간: {formatDate(startDate)} ~ {formatDate(endDate)}</span>
-          <span>남은 시간: {remainingTime.days}일 {remainingTime.hours}시간</span>
-        </div>
+    <section className="inner">
+      <div className="card_container">
         <PreviousRanking />
-        <div>
-          <button type="button" onClick={() => setSelectTab("study")}>
+      </div>
+      <div className="card_container ranking-container">
+        <div className="ranking-header">
+          <h1 className="ranking-title container_title">이번 주 랭킹</h1>
+          <div className="ranking-info">
+            <p>집계 기간: {formatDate(startDate)} ~ {formatDate(endDate)}</p>
+            <p>다음 랭킹까지 {remainingTime.days}일 {remainingTime.hours}시간</p>
+          </div>
+        </div>
+        <div className="ranking-tabs">
+          <button
+            type="button"
+            className={`${selectTab === "study" ? "active" : ""}`}
+            onClick={() => setSelectTab("study")}
+          >
             스터디 랭킹
           </button>
-          <button type="button" onClick={() => setSelectTab("user")} >
+          <button
+            type="button" 
+            className={`${selectTab === "user" ? "active" : ""}`}
+            onClick={() => setSelectTab("user")} 
+          >
             유저 랭킹
           </button>
         </div>
         {selectTab === "study" && <StudyRanking />}
         {selectTab === "user" && <UserRanking />}
-        <div>
+        <p className="ranking-guide">
           포인트를 모아 더 높은 순위에 도전해보세요!
-        </div>
+        </p>
       </div>
     </section>
-  )
+  );
 }
 
 export default RankingPage;
