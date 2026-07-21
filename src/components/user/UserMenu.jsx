@@ -79,7 +79,7 @@ function UserMenu({ isOpen, isAuthenticated, onClose, onLogout }) {
             <Link to="/signin" className="user_menu user_menu_with_icon">
               <span className="user_menu_label">로그인</span>
             </Link>
-            <Link to="/signin?mode=signup" className="user_menu user_menu_with_icon">
+            <Link to="/signup" className="user_menu user_menu_with_icon">
               <span className="user_menu_label">회원가입</span>
               <SignUpIcon />
             </Link>
