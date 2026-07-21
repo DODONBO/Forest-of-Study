@@ -73,6 +73,10 @@ function StudyListPage() {
         const response = await axios.get("/study", {
           params,
           signal: controller.signal,
+
+          headers: {
+            "x-user-id": "942d8758-939d-47f4-ba70-f418cccbdfd4",
+          },
         });
 
         const data = response.data;

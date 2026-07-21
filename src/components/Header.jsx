@@ -26,13 +26,13 @@ function Header() {
             </Link>
 
             <div className="header-actions">
-              <Button
+              {/* <Button
                 as={Link}
                 to="/study-create"
                 className="create_study_btn"
               >
                 스터디 만들기
-              </Button>
+              </Button> */}
 
               <div className="user_wrap">
                 <button
