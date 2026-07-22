@@ -2895,6 +2895,11 @@ input:focus { outline-color: var(--brand); }
   text-align: center;
 }
 
+ .ranking-info {
+  text-align: right;
+  line-height: 1.6;
+ }
+
 .ranking-tabs {
   display: flex;
   justify-content: center;
@@ -2909,6 +2914,12 @@ input:focus { outline-color: var(--brand); }
   color: var(--dark-gray);
   font-size: 16px;
   cursor: pointer;
+}
+
+.ranking-tabs button:hover {
+  background-color: var(--green);
+  color: var(--green-text);
+  font-weight: 700;
 }
 
 .ranking-tabs button:first-child {
@@ -3108,4 +3119,183 @@ input:focus { outline-color: var(--brand); }
   line-height: 1.5;
   text-align: center;
   word-break: keep-all;
+}
+
+/* 랭킹 페이지 반응형 */
+/* 태블릿 */
+@media screen and (max-width: 800px ) {
+  /* 지난주 명예의 전당 */
+  .previous-ranking-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .previous-ranking-header p {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+
+  .previous-ranking-list {
+    gap: 16px;
+  }
+
+  .previous-ranking-card {
+    width: 220px;
+    padding: 18px 22px;
+  }
+
+  .previous-ranking-card h3 {
+    font-size: 12px;
+  }
+
+  .previous-ranking-card::after {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .previous-ranking-result:first-of-type {
+    padding-top: 12px;
+  }
+
+  .previous-ranking-name {
+    font-size: 14px;
+  }
+
+  .previous-ranking-point {
+    margin-top: 4px;
+    font-size: 18px;
+  }
+
+  /* 이번 주 랭킹 상단 */
+  .ranking-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ranking-title {
+    margin-bottom: 0;
+    font-size: 32px;
+  }
+
+   .ranking-info p {
+    font-size: 14px;
+   }
+
+  .ranking-tabs {
+    margin-top: 20px;
+  }
+
+  .ranking-tabs button {
+    width: 140px;
+    height: 42px;
+    font-size: 14px;
+  }
+
+  /* 상위 1~3위 랭킹 */
+  .top-ranking-list {
+    gap: 18px;
+    margin: 38px auto;
+    max-width: 440px;
+  }
+
+  .top-ranking-item {
+    width: 140px;
+    height: 140px;
+  }
+
+  .top-ranking-item.rank-1 {
+    width: 160px;
+    height: 160px;
+  }
+
+  .top-ranking-item.rank-1 .top-ranking-rank {
+    font-size: 14px;
+  }
+
+  .top-ranking-item.rank-1 .top-ranking-name {
+    font-size: 18px;
+  }
+
+  .top-ranking-item.rank-1 .top-ranking-point {
+    font-size: 22px;
+  }
+
+  .top-ranking-name {
+    font-size: 16px;
+  }
+
+  .top-ranking-item.rank-1::after,
+  .top-ranking-item.rank-2::after,
+  .top-ranking-item.rank-3::after {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+
+  /* 공동 1위 랭킹 */
+  .top-ranking-list.first-count-3 {
+    max-width: 440px;
+  }
+
+  /* 4~10위 랭킹 */
+  .other-ranking-list {
+    max-width: 580px;
+  }
+
+  .other-ranking-item {
+    min-height: 50px;
+  }
+
+  .other-ranking-item p {
+    font-size: 14px;
+  }
+
+  /* 랭킹 안내 및 빈 데이터 */
+  .ranking-guide {
+    padding: 20px;
+    font-size: 16px;
+  }
+}
+
+/* 모바일 */
+@media screen and (max-width: 500px) {
+  /* 스터디 / 유저 카드는 세로 배치 */
+  .previous-ranking-list {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .previous-ranking-card {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .previous-ranking-results {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+    gap: 0;
+  }
+
+  .previous-ranking-result {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .previous-ranking-result + .previous-ranking-result {
+    border-top: none;
+    border-left: 1px solid var(--gray);
+  }
+
+  .previous-ranking-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
