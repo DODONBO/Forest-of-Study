@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 
 import axios from '../../utils/axios.js';
-import FocusResultToast from './FocusResultToast.jsx';
-import FocusButton from './FocusButton';
+import Button from '../Button.jsx';
+import useAlert from '../useAlert.js';
 import playIcon from '../../assets/img/ic_play.svg';
 import pauseIcon from '../../assets/img/ic_pause.svg';
 import stopIcon from '../../assets/img/ic_pause (1).svg';
@@ -17,6 +17,7 @@ export default function FocusTimer({ studyId, password }) {
     const [settingSeconds, setSettingSeconds] = useState(0);   // 설정한 초
     const [isEditing, setIsEditing] = useState(false);         // 수정할 때 쓴 거 
     const [toast, setToast] = useState(null);
+    const { showAlert } = useAlert();
 
     const loginId = localStorage.getItem('userId') ?? 'test1'; //로컬에서 꺼내다 쓴다
     const [startedAt, setStartedAt] = useState(null); //맨 처음 시작한 시각을 기록한다.
