@@ -51,16 +51,18 @@ const formatDate = (date) => {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}.${month}.${day}`;
-}
+};
 
 function RankingPage() {
   const [selectTab, setSelectTab] = useState("study");
 
   // 지난주 랭킹과 현재 랭킹 로딩 상태
   const [previousLoading, setPreviousLoading] = useState(true);
-  const [rankingLoading, setRankingLoading] = useState(true);
+  const [studyLoading, setStudyLoading] = useState(true);
+  const [userLoading, setUserLoading] = useState(true);
 
-  const isLoading = previousLoading || rankingLoading;
+  const isLoading = 
+    previousLoading || studyLoading || userLoading;
 
   const [remainingTime, setRemainingTime] = useState(getRemainingTime());
 
@@ -87,12 +89,12 @@ function RankingPage() {
   return (
     <>
       {isLoading && (
-        <AlertMessage message="랭킹을 불러오는 중입니다." />
+        <AlertMessage message="랭킹을 불러오는 중입니다" />
       )}
-
+      
       <section 
         className="inner"
-        style={{visibility: isLoading ? "hidden" : "visible" }}
+        style={{ visibility: isLoading ? "hidden" : "visible" }}
       >
         <div className="card_container">
           <PreviousRanking
@@ -135,10 +137,10 @@ function RankingPage() {
           </div>
 
           <div className={selectTab === "study" ? "ranking-panel active" : "ranking-panel"}>
-            <StudyRanking onLoadComplete={() => setRankingLoading(false)} />
+            <StudyRanking onLoadComplete={() => setStudyLoading(false)} />
           </div>
           <div className={selectTab === "user" ? "ranking-panel active" : "ranking-panel"}>
-            <UserRanking onLoadComplete={() => setRankingLoading(false)} />
+            <UserRanking onLoadComplete={() => setUserLoading(false)} />
           </div>
 
           <p className="ranking-guide">

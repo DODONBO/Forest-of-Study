@@ -8,6 +8,7 @@ function PreviousRanking({ onLoadComplete }) {
     users: [],
   });
   const [errorMessage, setErrorMessage] = useState("");
+  const [hasError, setHasError] = useState(false);
 
   const getPreviousRanking = async () => {
     try {
@@ -15,6 +16,8 @@ function PreviousRanking({ onLoadComplete }) {
       setPreviousRanking(response.data)
     } catch(error) {
       console.error(error);
+
+      setHasError(true);
 
       setErrorMessage(
         error.response?.data?.message ||
@@ -29,63 +32,64 @@ function PreviousRanking({ onLoadComplete }) {
     getPreviousRanking();
   },[]);
 
-  if (errorMessage) {
-    return (
-      <section className="previous-ranking">
-        <AlertMessage
-          message={errorMessage}
-          variant="error"
-        />
-      </section>
-    );
-  }
-
   return (
     <section className="previous-ranking">
+      {errorMessage && (
+        <AlertMessage 
+          message={errorMessage}
+          variant="error"
+          onClose={() => setErrorMessage("")}
+        />
+      )}
+
       <div className="previous-ranking-header">
         <h2>지난주 명예의 전당</h2>
         <p>지난주 가장 높은 포인트를 기록한 주인공이에요</p>
       </div>
 
-      <div className="previous-ranking-list">
-        <div className="previous-ranking-card">
-          <h3>스터디 {previousRanking.studies.length > 1 ? "공동 1위" : "1위"}</h3>
+      {hasError ? (
+        <p className="previous-ranking-empty">지난주 랭킹을 불러올 수 없습니다</p>
+      ) : (
+        <div className="previous-ranking-list">
+          <div className="previous-ranking-card">
+            <h3>스터디 {previousRanking.studies.length > 1 ? "공동 1위" : "1위"}</h3>
 
-          {previousRanking.studies.length > 0 ? (
-            previousRanking.studies.map((study) => (
-              <div className="previous-ranking-result" key={study.id}>
-                <p className="previous-ranking-name">
-                  {study.name}
-                </p>
-                <p className="previous-ranking-point">
-                  {study.point}P
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="previous-ranking-empty">지난주 랭킹 기록이 없습니다</p>
-          )}
+            {previousRanking.studies.length > 0 ? (
+              previousRanking.studies.map((study) => (
+                <div className="previous-ranking-result" key={study.id}>
+                  <p className="previous-ranking-name">
+                    {study.name}
+                  </p>
+                  <p className="previous-ranking-point">
+                    {study.point}P
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="previous-ranking-empty">지난주 랭킹 기록이 없습니다</p>
+            )}
+          </div>
+
+          <div className="previous-ranking-card">
+            <h3>유저 {previousRanking.users.length > 1 ? "공동 1위" : "1위"}</h3>
+
+            {previousRanking.users.length > 0 ? (
+              previousRanking.users.map((user) => (
+                <div className="previous-ranking-result" key={user.id}>
+                  <p className="previous-ranking-name">
+                    {user.nickname}
+                  </p>
+                  <p className="previous-ranking-point">
+                    {user.point}P
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="previous-ranking-empty">지난주 랭킹 기록이 없습니다</p>
+            )}
+          </div>
         </div>
-
-        <div className="previous-ranking-card">
-          <h3>유저 {previousRanking.users.length > 1 ? "공동 1위" : "1위"}</h3>
-
-          {previousRanking.users.length > 0 ? (
-            previousRanking.users.map((user) => (
-              <div className="previous-ranking-result" key={user.id}>
-                <p className="previous-ranking-name">
-                  {user.nickname}
-                </p>
-                <p className="previous-ranking-point">
-                  {user.point}P
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="previous-ranking-empty">지난주 랭킹 기록이 없습니다</p>
-          )}
-        </div>
-      </div>
+      )}
     </section>
   );
 }

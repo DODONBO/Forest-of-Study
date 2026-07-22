@@ -5,6 +5,7 @@ import AlertMessage from "../AlertMessage.jsx";
 function StudyRanking({ onLoadComplete }) {
   const [studyRanking, setStudyRanking] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [hasError, setHasError] = useState(false);
 
   const getStudyRanking = async () => {
     try {
@@ -12,6 +13,8 @@ function StudyRanking({ onLoadComplete }) {
       setStudyRanking(response.data);
     } catch (error) {
       console.error(error);
+
+      setHasError(true);
 
       setErrorMessage(
         error.response?.data?.message ||
@@ -36,20 +39,19 @@ function StudyRanking({ onLoadComplete }) {
     getStudyRanking();
   }, []);
 
-  if (errorMessage) {
-    return (
-      <section className="ranking-list">
+  return (
+    <section className="ranking-list">
+      {errorMessage && (
         <AlertMessage
           message={errorMessage}
           variant="error"
+          onClose={() => setErrorMessage("")}
         />
-      </section>
-    )
-  }
+      )}
 
-  return (
-    <section className="ranking-list">
-      {studyRanking.length === 0 ? (
+      {hasError ? (
+        <p className="ranking-empty">스터디 랭킹을 불러올 수 없습니다</p>
+      ) : studyRanking.length === 0 ? (
         <p className="ranking-empty">이번 주 스터디 랭킹 기록이 없습니다</p>
       ) : (
         <>

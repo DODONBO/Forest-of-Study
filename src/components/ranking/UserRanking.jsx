@@ -5,6 +5,7 @@ import AlertMessage from "../AlertMessage.jsx";
 function UserRanking({ onLoadComplete }) {
   const [userRanking, setUserRanking] = useState([])
   const [errorMessage, setErrorMessage] = useState("");
+  const [hasError, setHasError] = useState(false);
 
   const getUserRanking = async () => {
     try {
@@ -12,6 +13,8 @@ function UserRanking({ onLoadComplete }) {
       setUserRanking(response.data);
     } catch (error) {
       console.error(error);
+
+      setHasError(true);
 
       setErrorMessage(
         error.response?.data?.message ||
@@ -36,20 +39,19 @@ function UserRanking({ onLoadComplete }) {
     getUserRanking();
   }, []);
 
-  if (errorMessage) {
-    return (
-      <section className="ranking-list">
-        <AlertMessage
-          message={errorMessage}
-          variant="error"
-        />
-      </section>
-    )
-  }
-
   return (
     <section className="ranking-list">
-      {userRanking.length === 0 ? (
+      {errorMessage && (
+        <AlertMessage 
+          message={errorMessage}
+          variant="error"
+          onClose={() => setErrorMessage("")}
+        />
+      )}
+
+      {hasError ? (
+        <p className="ranking-empty">유저 랭킹을 불러올 수 없습니다</p>
+      ) : userRanking.length === 0 ? (
         <p className="ranking-empty">이번 주 유저 랭킹 기록이 없습니다</p>
       ) : (
         <>
