@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 
 import axios from '../utils/axios.js';
-import useAlert from '../components/useAlert.js';
 import AlertMessage from '../components/AlertMessage.jsx';
 import FocusTimer from '../components/focus/FocusTimer.jsx';
 import PointSummary from '../components/PointSummary.jsx';
@@ -40,9 +39,6 @@ function FocusPage() {
     }, [password, studyId, navigate, showAlert]);
 
     useEffect(() => {
-        // 비밀번호가 없으면 타이머를 그리지 않음 (이동하는 동안 빈 화면)
-        if (!password) return;
-
         let isActive = true;
 
         async function fetchFocusData() {
@@ -64,9 +60,7 @@ function FocusPage() {
                         return null;
                     });
 
-                const focusRequest = axios.post(`/study/${studyId}/focus`, {
-                    password,
-                });
+                const focusRequest = axios.post(`/study/${studyId}/focus`, {});
 
                 const [focusResponse] = await Promise.all([
                     focusRequest,
@@ -172,7 +166,6 @@ function FocusPage() {
 
                             <Link
                                 to={`/study/${studyId}/habit`}
-                                state={{ password }}
                                 className="focus-page__navigation-button"
                             >
                                 <span>오늘의 습관</span>
