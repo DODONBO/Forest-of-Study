@@ -164,6 +164,10 @@ const StudyDetailPage = () => {
             showAlert("로그인이 필요합니다.", "error");
             return;
         }
+        if (!study?.isMember) {
+            showAlert("스터디 참여자만 이용할 수 있습니다.", "error");
+            return;
+        }
         navigate(path);
     };
 
