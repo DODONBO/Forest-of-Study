@@ -26,8 +26,6 @@ function FocusPage() {
     const [focusLoadError, setFocusLoadError] = useState('');
     const loadingAlertTimerRef = useRef(null);
 
-    //const loginId = localStorage.getItem('userId');
-
     useEffect(() => {
         let isActive = true;
 
@@ -193,7 +191,7 @@ function FocusPage() {
                             <span className="container_title focus-today__title">오늘의 집중</span>
                             <div className="focus-today__body">
                                 <FocusTimer studyId={studyId} />
-                                <FocusTimeline studyId={studyId} loginId={loginId} />
+                                <FocusTimeline studyId={studyId} />
                             </div>
                         </div>
                     </div>

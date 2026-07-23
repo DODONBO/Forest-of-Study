@@ -9,7 +9,7 @@ import stopIcon from '../../assets/img/ic_pause (1).svg';
 
 import './FocusTimer.css';
 
-export default function FocusTimer({ studyId, password }) {
+export default function FocusTimer({ studyId }) {
     const [elapsedSeconds, setElapsedSeconds] = useState(0); // 실제 흘러간 초 (계속 증가, 포인트 계산할 때 역산)
     const [isRunning, setIsRunning] = useState(false);  // 업데이트
     const [isStarted, setIsStarted] = useState(false);  // 한 번이라도 시작했는지 (버튼 바뀌는 거)
@@ -19,7 +19,6 @@ export default function FocusTimer({ studyId, password }) {
 
     const { showAlert } = useAlert();
 
-    const loginId = localStorage.getItem('userId') ?? 'test1'; //로컬에서 꺼내다 쓴다
     const [startedAt, setStartedAt] = useState(null); //맨 처음 시작한 시각을 기록한다.
 
     const totalSettingSeconds = settingMinutes * 60 + settingSeconds;
@@ -108,7 +107,7 @@ export default function FocusTimer({ studyId, password }) {
         }
 
         try {
-            const response = await axios.post(`/study/${studyId}/focus/session`, { loginId, password, startedAt, durationSeconds: elapsedSeconds })
+            const response = await axios.post(`/study/${studyId}/focus/session`, { startedAt, durationSeconds: elapsedSeconds })
             const earnedPoint = response.data.data.point;
             showAlert(`집중 완료! ${earnedPoint}포인트를 획득했습니다.`, 'success');
         } catch (error) {
