@@ -10,6 +10,7 @@ import plusIcon from "../assets/img/ic_plus.svg";
 import useAlert from "../components/useAlert.js";
 import { getStudyBackgroundStyle } from "../utils/studyBackground.js";
 import axios from "../utils/axios.js";
+import { getUserId } from "../utils/authStorage.js";
 import FavoriteButton from "../components/favoriteButton.jsx";
 import StudyDeleteModal from "../components/study/StudyDeleteModal.jsx";
 
@@ -23,6 +24,7 @@ const StudyDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { showAlert } = useAlert();
+  const currentUserId = getUserId();
   const [study, setStudy] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -105,22 +107,11 @@ const StudyDetailPage = () => {
         ) {
           return;
         }
-        setStudy({
-          id: "temp-id",
-          name: "임시 스터디",
-          nickname: "테스트",
-          description: "백엔드 연동 전 임시 화면입니다.",
-          point: 0,
-          isOwner: true,
-          emojis: [],
-        });
+        setStudy(null);
         setEmoji([]);
-        setErrorMessage("");
-        // setStudy(null);
-        // setEmoji([]);
-        // setErrorMessage(
-        //   getStudyErrorMessage(error, "스터디 정보를 불러오지 못했습니다."),
-        // );
+        setErrorMessage(
+          getStudyErrorMessage(error, "스터디 정보를 불러오지 못했습니다."),
+        );
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false);
@@ -237,6 +228,40 @@ const StudyDetailPage = () => {
     });
   };
 
+  const handleJoin = async () => {
+    try {
+      await axios.post(`/study/${id}/members`);
+      showAlert("스터디에 참여했습니다.");
+      window.location.reload();
+    } catch (error) {
+      showAlert(getStudyErrorMessage(error, "참여에 실패했습니다."));
+    }
+  };
+
+  const handleLeaveStudy = async () => {
+    try {
+      await axios.delete(`/study/${id}/members`);
+      showAlert("스터디에서 나갔습니다.");
+      navigate("/");
+    } catch (error) {
+      showAlert(getStudyErrorMessage(error, "나가기에 실패했습니다."));
+    }
+  };
+
+  const handleToggleRecruiting = async () => {
+    try {
+      await axios.patch(`/study/${id}/recruiting`, {
+        isRecruiting: !study.isRecruiting,
+      });
+      showAlert(
+        study.isRecruiting ? "모집을 마감했습니다." : "모집을 재개했습니다.",
+      );
+      window.location.reload();
+    } catch (error) {
+      showAlert(getStudyErrorMessage(error, "처리에 실패했습니다."));
+    }
+  };
+
   if (isLoading) {
     return (
       <main>
@@ -320,7 +345,7 @@ const StudyDetailPage = () => {
               </div>
 
               <div className="study-menu-buttons">
-                {study.isOwner && (
+                {study.isOwner ? (
                   <>
                     <button
                       type="button"
@@ -336,6 +361,18 @@ const StudyDetailPage = () => {
                       onClick={handleOpenDeleteModal}
                     >
                       삭제하기
+                    </button>
+                    <span className="dec_line">|</span>
+
+                    <button type="button" onClick={handleToggleRecruiting}>
+                      {study.isRecruiting ? "모집 마감" : "모집 재개"}
+                    </button>
+                    <span className="dec_line">|</span>
+                  </>
+                ) : (
+                  <>
+                    <button type="button" onClick={handleJoin}>
+                      참여하기
                     </button>
                     <span className="dec_line">|</span>
                   </>
@@ -438,13 +475,15 @@ const StudyDetailPage = () => {
             </div>
 
             <div className="container_title">
-              <div className="study-detail-title">
-                <span>{study.nickname}</span>
-                <span>의</span>
-                <span>{study.name}</span>
-              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+              >
+                <div className="study-detail-title">
+                  <span>{study.nickname}</span>
+                  <span>의</span>
+                  <span>{study.name}</span>
+                </div>
 
-              <div>
                 <div>
                   <button
                     type="button"
@@ -452,12 +491,15 @@ const StudyDetailPage = () => {
                     onClick={() => setIsMemberModalOpen(true)}
                   >
                     <span>멤버 목록</span>
-                    <span style={{ marginLeft: "8px" }}>{memberCount}/3</span>
+                    <span style={{ marginLeft: "8px" }}>{memberCount}/{study.maxMembers}</span>
                   </button>
                 </div>
+              </div>
 
+              <div>
                 {isMemberModalOpen && (
                   <div
+                    tabIndex={-1}
                     onClick={() => setIsMemberModalOpen(false)}
                     onKeyDown={(e) => {
                       if (e.key === "Escape") setIsMemberModalOpen(false);
@@ -480,19 +522,50 @@ const StudyDetailPage = () => {
                       style={{
                         background: "white",
                         padding: "24px",
-                        width: "280px",
+                        width: "340px",
                         borderRadius: "16px",
                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                       }}
                     >
-                      <h3>참여자 목록</h3>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <h3 style={{ margin: 0 }}>참여자 목록</h3>
+                        {!study.isOwner &&
+                          members.some(
+                            (member) => member.userId === currentUserId,
+                          ) && (
+                            <button
+                              type="button"
+                              onClick={handleLeaveStudy}
+                              style={{
+                                color: "red",
+                                background: "none",
+                                border: "1px solid red",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                padding: "6px 14px",
+                              }}
+                            >
+                              나가기
+                            </button>
+                          )}
+                      </div>
                       <ul style={{ listStyle: "none", padding: 0 }}>
                         {[...members]
                           .sort((a, b) =>
                             a.role === "HOST" ? -1 : b.role === "HOST" ? 1 : 0,
                           )
                           .map((member) => (
-                            <li key={member.id} style={{ padding: "4px 0" }}>
+                            <li
+                              key={member.id}
+                              style={{ padding: "6px 0", fontSize: "14px" }}
+                            >
                               {member.role === "HOST" ? "👑 " : ""}
                               {member.user.nickname}
                             </li>
