@@ -9,21 +9,21 @@ style.css 구성표
 505-685: 카드 인터랙션, 목록 카드 내용과 배경
 
 페이지/기능별 줄 범위
-686-1352: 대시보드 기본 레이아웃, 카드, 차트, 업적, 즐겨찾기, 목표
-1353-1600: 대시보드 태블릿/모바일 반응형
-1601-1660: 최근 조회 스터디 스크롤 영역
-1661-1753: 공통 모달과 입력 폼
-1754-2014: 오늘의 습관, 습관 수정 모달, 주간 기록표와 현재 시간
-2015-2178: 스터디 목록 검색/정렬/더보기/상태 메시지
-2179-2323: 스터디 상세 이모지 목록/추가/피커
-2324-2466: 상세 화면 기능 버튼과 확인 모달
-2467-2584: 상세/습관/집중 네비게이션, 전역 로딩과 인증 화면
-2585-2833: 헤더 유저 메뉴와 접근성 애니메이션
-2834-2953: 다크 모드 토글과 즐겨찾기 버튼
-2954-3442: 공통 태블릿/모바일 반응형과 목록 상태
-3443-4387: 스터디 만들기/수정 폼, 배경 미리보기와 반응형
-4388-4721: 랭킹 페이지 기본 레이아웃
-4722-4901: 랭킹 페이지 태블릿/모바일 반응형
+686-1404: 대시보드 기본 레이아웃, 카드, 차트, 업적, 즐겨찾기, 목표
+1405-1652: 대시보드 태블릿/모바일 반응형
+1653-1712: 최근 조회 스터디 스크롤 영역
+1713-1805: 공통 모달과 입력 폼
+1806-2066: 오늘의 습관, 습관 수정 모달, 주간 기록표와 현재 시간
+2067-2230: 스터디 목록 검색/정렬/더보기/상태 메시지
+2231-2375: 스터디 상세 이모지 목록/추가/피커
+2376-2518: 상세 화면 기능 버튼과 확인 모달
+2519-2636: 상세/습관/집중 네비게이션, 전역 로딩과 인증 화면
+2637-2885: 헤더 유저 메뉴와 접근성 애니메이션
+2886-3005: 다크 모드 토글과 즐겨찾기 버튼
+3006-3494: 공통 태블릿/모바일 반응형과 목록 상태
+3495-4428: 스터디 만들기/수정 폼, 배경 미리보기와 반응형
+4429-4763: 랭킹 페이지 기본 레이아웃
+4764-5274: 랭킹 페이지 반응형과 헤더 랭킹 아이콘
 */
 
 :root {
@@ -1019,6 +1019,58 @@ input:focus {
   color: inherit;
   text-decoration: none;
   cursor: pointer;
+}
+
+.dashboard_study_card--image {
+  background-color: #33532b;
+  background-repeat: no-repeat;
+}
+
+.dashboard_study_card--image::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(18, 26, 16, 0.42),
+    rgba(18, 26, 16, 0.68)
+  );
+  pointer-events: none;
+}
+
+.dashboard_study_card--image > * {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard_study_card--image .dashboard_card_label,
+.dashboard_study_card--image .dashboard_study_summary strong,
+.dashboard_study_card--image .dashboard_card_footer strong {
+  color: var(--wh);
+}
+
+.dashboard_study_card--image .dashboard_card_description,
+.dashboard_study_card--image .dashboard_study_summary,
+.dashboard_study_card--image .dashboard_card_footer {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.dashboard_study_card--image .dashboard_card_icon {
+  color: #33532b;
+  background-color: rgba(255, 255, 255, 0.88);
+}
+
+.dashboard_study_card--image .dashboard_progress {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.dashboard_study_card--image .dashboard_progress_bar {
+  background-color: var(--wh);
+}
+
+.dashboard_study_card--image .dashboard_card_footer {
+  border-top-color: rgba(255, 255, 255, 0.3);
 }
 
 .dashboard_study_card .dashboard_card_label {
@@ -3909,21 +3961,35 @@ input:focus {
 }
 
 .study-create-background-preview {
+  --study-card-preview-width: calc((1120px - 48px) / 3);
+  --study-card-preview-height: 277px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
   gap: 16px;
-  margin-top: 18px;
+  margin: 0 0 18px;
 }
 
 .study-create-background-preview-card {
   position: relative;
-  min-height: 180px;
+  width: min(100%, var(--study-card-preview-width));
+  height: var(--study-card-preview-height);
+  min-width: 0;
+  min-height: 0;
+  padding: 30px;
   overflow: hidden;
   border: 1px solid var(--gray);
   border-radius: 20px;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  cursor: default;
+}
+
+.study-create-background-preview-card:hover {
+  z-index: auto;
+  transform: none;
+  box-shadow: none;
 }
 
 .study-create-background-preview-card.is-draggable {
@@ -3936,46 +4002,14 @@ input:focus {
   cursor: grabbing;
 }
 
-.study-create-background-preview-cover {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.34);
-}
-
-.study-create-background-preview-content {
-  position: relative;
-  z-index: 1;
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 20px;
-  color: var(--wh);
-}
-
-.study-create-background-preview-card.is-color .study-create-background-preview-content {
-  color: var(--black);
-}
-
-.study-create-background-preview-card.is-draggable .study-create-background-preview-cover,
-.study-create-background-preview-card.is-draggable .study-create-background-preview-content {
+.study-create-background-preview-card.is-draggable>*,
+.study-create-background-preview-card .favorite-btn {
   pointer-events: none;
 }
 
-.study-create-background-preview-content strong {
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 24px;
-}
-
-.study-create-background-preview-content span {
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 20px;
-}
-
 .study-create-background-layout {
+  width: 100%;
+  justify-self: stretch;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -4069,6 +4103,23 @@ input:focus {
   border-color: #FFA3A5;
   background: #FFA3A5;
   color: #C41013;
+}
+
+@media (max-width: 1199px) {
+  .study-create-background-preview {
+    --study-card-preview-width: calc((100vw - 144px) / 2);
+  }
+}
+
+@media (max-width: 800px) {
+  .study-create-background-preview {
+    --study-card-preview-width: 100%;
+    --study-card-preview-height: 180px;
+  }
+
+  .study-create-background-preview-card {
+    padding: 16px;
+  }
 }
 
 .study-create-bg-green {
@@ -4234,11 +4285,6 @@ input:focus {
     aspect-ratio: 1;
   }
 
-  .study-create-background-preview-card,
-  .study-create-background-preview-content {
-    min-height: 220px;
-  }
-
   .study-create-submit {
     width: 520px;
     align-self: flex-start;
@@ -4349,11 +4395,6 @@ input:focus {
     width: 100%;
     height: auto;
     aspect-ratio: 1;
-  }
-
-  .study-create-background-preview-card,
-  .study-create-background-preview-content {
-    min-height: 152px;
   }
 
   .study-create-background-layout-header,
