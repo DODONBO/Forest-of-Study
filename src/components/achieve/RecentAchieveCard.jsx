@@ -69,7 +69,7 @@ export default function RecentAchieveCard({ achievements, onOpenModal }) {
 
             <div className="dashboard_card_footer">
                 <span>전체 업적</span>
-                <strong>5개</strong>
+                <strong>{totalCount}개</strong>
             </div>
         </div>
     );
