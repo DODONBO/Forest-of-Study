@@ -6,6 +6,10 @@ import { getUserId } from "../utils/authStorage";
 import AchieveModal from "../components/achieve/AchieveModal.jsx";
 import RecentAchieveCard from "../components/achieve/RecentAchieveCard.jsx";
 import useAchievements from "../components/achieve/useAchievements.js";
+import {
+    getStudyBackgroundStyle,
+    isImageBackground,
+} from "../utils/studyBackground.js";
 
 const DEFAULT_VISIBLE_STUDY_COUNT = 3;
 const STUDY_TOGGLE_ANIMATION_MS = 250;
@@ -369,50 +373,71 @@ function DashboardPage() {
                                 <p>진행 중인 스터디가 없습니다.</p>
                             )}
 
-                            {visibleStudies.map((study, index) => (
-                                <Link
-                                    to={`/study/${study.studyId}`}
-                                    className={`card dashboard_card dashboard_study_card${index >= DEFAULT_VISIBLE_STUDY_COUNT
-                                        ? isCollapsingStudies
-                                            ? " dashboard_study_card--hiding"
-                                            : " dashboard_study_card--revealed"
-                                        : ""
-                                        }`}
-                                    key={study.studyId}
-                                >
-                                    <div className="dashboard_card_header">
-                                        <div>
-                                            <div className="dashboard_card_label">{study.name}</div>
+                            {visibleStudies.map((study, index) => {
+                                const hasImageBackground = isImageBackground(study);
+                                const animationClassName =
+                                    index < DEFAULT_VISIBLE_STUDY_COUNT
+                                        ? ""
+                                        : isCollapsingStudies
+                                            ? "dashboard_study_card--hiding"
+                                            : "dashboard_study_card--revealed";
+                                const cardClassName = [
+                                    "card",
+                                    "dashboard_card",
+                                    "dashboard_study_card",
+                                    hasImageBackground
+                                        ? "dashboard_study_card--image"
+                                        : "",
+                                    animationClassName,
+                                ]
+                                    .filter(Boolean)
+                                    .join(" ");
 
-                                            <p className="dashboard_card_description">
-                                                {study.description ?? ""}
-                                            </p>
+                                return (
+                                    <Link
+                                        to={`/study/${study.studyId}`}
+                                        className={cardClassName}
+                                        style={
+                                            hasImageBackground
+                                                ? getStudyBackgroundStyle(study)
+                                                : undefined
+                                        }
+                                        key={study.studyId}
+                                    >
+                                        <div className="dashboard_card_header">
+                                            <div>
+                                                <div className="dashboard_card_label">{study.name}</div>
+
+                                                <p className="dashboard_card_description">
+                                                    {study.description ?? ""}
+                                                </p>
+                                            </div>
+
+                                            <div className="dashboard_card_icon">📚</div>
                                         </div>
 
-                                        <div className="dashboard_card_icon">📚</div>
-                                    </div>
+                                        <div className="dashboard_study_summary">
+                                            <span>오늘의 습관</span>
 
-                                    <div className="dashboard_study_summary">
-                                        <span>오늘의 습관</span>
+                                            <strong>
+                                                {study.completedHabit} / {study.totalHabit}
+                                            </strong>
+                                        </div>
 
-                                        <strong>
-                                            {study.completedHabit} / {study.totalHabit}
-                                        </strong>
-                                    </div>
+                                        <div className="dashboard_progress">
+                                            <div
+                                                className="dashboard_progress_bar"
+                                                style={{ width: `${Number(study.progress ?? 0)}%` }}
+                                            />
+                                        </div>
 
-                                    <div className="dashboard_progress">
-                                        <div
-                                            className="dashboard_progress_bar"
-                                            style={{ width: `${Number(study.progress ?? 0)}%` }}
-                                        />
-                                    </div>
-
-                                    <div className="dashboard_card_footer">
-                                        <span>오늘의 달성률</span>
-                                        <strong>{Number(study.progress ?? 0)}%</strong>
-                                    </div>
-                                </Link>
-                            ))}
+                                        <div className="dashboard_card_footer">
+                                            <span>오늘의 달성률</span>
+                                            <strong>{Number(study.progress ?? 0)}%</strong>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     </div>
                     <div className="card_container dashboard_activity_container inner_container">
