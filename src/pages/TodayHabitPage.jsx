@@ -19,15 +19,24 @@ function TodayHabitPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [study, setStudy] = useState({});
   const [habits, setHabits] = useState([]);
+  const [isOwner, setIsOwner] = useState(false);
 
   const handleLoad = async () => {
     startLoading();
 
     try {
-      const response = await axios.get(`/study/${id}/habit`);
+      const [habitResponse, studyResponse] =
+      await Promise.all([
+        axios.get(`/study/${id}/habit`),
+        axios.get(`/study/${id}`),
+      ]);
 
-      setStudy(response.data);
-      setHabits(response.data.habits ?? []);
+      const studyDetail =
+      studyResponse.data?.data ?? studyResponse.data;
+
+      setStudy(habitResponse.data);
+      setHabits(habitResponse.data.habits ?? []);
+      setIsOwner(Boolean(studyDetail?.isOwner));
       setIsEditModalOpen(false);
     } catch (error) {
       console.error("오늘의 습관 조회 오류:", error);
@@ -124,13 +133,15 @@ function TodayHabitPage() {
           <div className="card_container inner_container today_habit_card">
             <div className="inner">
               <span className="container_title">오늘의 습관</span>
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(true)}
-                className="edit_habit_btn"
-              >
-                목록 수정
-              </button>
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="edit_habit_btn"
+                >
+                  목록 수정
+                </button>
+              )}
               <HabitList 
                 habits={habits} 
                 studyId={id}
@@ -141,13 +152,13 @@ function TodayHabitPage() {
           </div>
         </section>
       </div>
-      {isEditModalOpen && (
-                <HabitEditModal
-                  habits={habits}
-                  onClose={() => setIsEditModalOpen(false)}
-                  onSave={handleLoad}
-                  studyId={id}
-                />
+      {isOwner && isEditModalOpen && (
+        <HabitEditModal
+          habits={habits}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleLoad}
+          studyId={id}
+        />
       )}
     </section>
   );
