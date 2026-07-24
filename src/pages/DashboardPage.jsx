@@ -1,630 +1,585 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import EmojiPicker from "emoji-picker-react";
-import AlertMessage from "../components/AlertMessage.jsx";
-import PointSummary from "../components/PointSummary.jsx";
-import "../style.css";
-import WeeklyHabitRecordTable from "../components/habit/WeeklyHabitRecordTable.jsx";
-import arrowRightIcon from "../assets/img/ic_arrow_right.svg";
-import plusIcon from "../assets/img/ic_plus.svg";
-import useAlert from "../components/useAlert.js";
-import { getStudyBackgroundStyle } from "../utils/studyBackground.js";
-import axios from "../utils/axios.js";
-import { getUserId } from "../utils/authStorage.js";
-import FavoriteButton from "../components/favoriteButton.jsx";
-import StudyDeleteModal from "../components/study/StudyDeleteModal.jsx";
+import { Link, useNavigate } from "react-router-dom";
+import { useLoading } from "../contexts/LoadingContext";
+import axios from "../utils/axios";
+import { useEffect, useRef, useState } from "react";
+import { getUserId } from "../utils/authStorage";
+import AchieveModal from "../components/achieve/AchieveModal.jsx";
+import RecentAchieveCard from "../components/achieve/RecentAchieveCard.jsx";
+import useAchievements from "../components/achieve/useAchievements.js";
 
-const getStudyErrorMessage = (error, fallbackMessage) =>
-    error?.response?.data?.error?.message ||
-    error?.response?.data?.message ||
-    error?.message ||
-    fallbackMessage;
+const DEFAULT_VISIBLE_STUDY_COUNT = 3;
+const STUDY_TOGGLE_ANIMATION_MS = 250;
 
-const StudyDetailPage = () => {
-    const { id } = useParams();
+function DashboardPage() {
+    const { startLoading, endLoading } = useLoading();
     const navigate = useNavigate();
-    const { showAlert } = useAlert();
-    const currentUserId = getUserId();
-    const [study, setStudy] = useState(null);
+
+    const [currentUser, setCurrentUser] = useState(null);
+    const [todayStatus, setTodayStatus] = useState([]);
+    const [weeklyFocus, setWeeklyFocus] = useState([]);
+    const [weeklyFocusCard, setWeeklyFocusCard] = useState({});
+    const [studies, setStudies] = useState([]);
+    const [showAllStudies, setShowAllStudies] = useState(false);
+    const [isCollapsingStudies, setIsCollapsingStudies] = useState(false);
+    const [studySectionHeight, setStudySectionHeight] = useState(null);
+    const [favoriteStudies, setFavoriteStudies] = useState([]);
+    const [favoriteTotalCount, setFavoriteTotalCount] = useState(0);
+    const [goalCard, setGoalCard] = useState({});
+    const [maxFocusMinutes, setMaxFocusMinutes] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAchieveOpen, setIsAchieveOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [isEmojiOpen, setIsEmojiOpen] = useState(false);
-    const [isEmojiMoreOpen, setIsEmojiMoreOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [deleteConfirmation, setDeleteConfirmation] = useState("");
-    const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
-    const [isDeleting, setIsDeleting] = useState(false);
-    const emojiRef = useRef(null);
-    const [emoji, setEmoji] = useState([]);
-    const [memberCount, setMemberCount] = useState(0);
-    const [members, setMembers] = useState([]);
-    const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+    const achievements = useAchievements();
+    const studySectionRef = useRef(null);
+    const studyCollapseTimerRef = useRef(null);
+    const studyResizeFrameRef = useRef(null);
+    const userId = getUserId();
+
+    const handleLoad = async () => {
+        setIsLoading(true);
+        setErrorMessage("");
+        startLoading();
+
+        try {
+            const [
+                currentUserResult,
+                dashboardResult,
+                studiesResult,
+                favoritesResult,
+                goalResult,
+            ] = await Promise.allSettled([
+                axios.get("/users/me"),
+                axios.get("/api/users/dashboard"),
+                axios.get("/api/users/studies"),
+                axios.get("/api/favorites/me"),
+                axios.get("/api/users/goal"),
+            ]);
+
+            if (currentUserResult.status === "rejected") {
+                throw currentUserResult.reason;
+            }
+
+            if (dashboardResult.status === "rejected") {
+                throw dashboardResult.reason;
+            }
+
+            setCurrentUser(currentUserResult.value.data?.data ?? null);
+
+            // 서버가 { todayStatus, weeklyFocus } 또는
+            // { data: { todayStatus, weeklyFocus } } 형태로 응답하는 경우 모두 처리합니다.
+            const data =
+                dashboardResult.value.data?.data ?? dashboardResult.value.data ?? {};
+
+            const loadedTodayStatus = Array.isArray(data.todayStatus)
+                ? data.todayStatus
+                : [];
+
+            const loadedWeeklyFocus = Array.isArray(data.weeklyFocus)
+                ? data.weeklyFocus
+                : [];
+
+            const loadedMaxFocusMinutes =
+                loadedWeeklyFocus.length > 0
+                    ? Math.max(
+                        ...loadedWeeklyFocus.map((item) => Number(item?.minutes ?? 0)),
+                    )
+                    : 0;
+            const loadedWeeklyFocusCard = data.weeklyFocusCard;
+
+            setTodayStatus(loadedTodayStatus);
+            setWeeklyFocus(loadedWeeklyFocus);
+            setMaxFocusMinutes(loadedMaxFocusMinutes);
+            setWeeklyFocusCard(loadedWeeklyFocusCard ?? {});
+
+            if (studiesResult.status === "fulfilled") {
+                setStudies(studiesResult.value.data?.data ?? []);
+            } else {
+                console.error("내 스터디 조회 실패:", studiesResult.reason);
+                setStudies([]);
+            }
+
+            if (favoritesResult.status === "fulfilled") {
+                const favoriteList = favoritesResult.value.data?.data ?? [];
+                setFavoriteStudies(favoriteList);
+                setFavoriteTotalCount(
+                    favoritesResult.value.data?.pagination?.totalCount ??
+                    favoriteList.length,
+                );
+            } else {
+                console.error("즐겨찾기 조회 실패:", favoritesResult.reason);
+                setFavoriteStudies([]);
+                setFavoriteTotalCount(0);
+            }
+
+            if (goalResult.status === "fulfilled") {
+                setGoalCard(goalResult.value.data?.data ?? {});
+            } else {
+                console.error("주간 목표 조회 실패:", goalResult.reason);
+                setGoalCard({});
+            }
+        } catch (error) {
+            console.error("대시보드 조회 실패:", error);
+            console.error("서버 응답:", error.response?.data);
+
+            setCurrentUser(null);
+            setTodayStatus([]);
+            setWeeklyFocus([]);
+            setWeeklyFocusCard({});
+            setStudies([]);
+            setFavoriteStudies([]);
+            setFavoriteTotalCount(0);
+            setGoalCard({});
+            setMaxFocusMinutes(0);
+            setErrorMessage(
+                error.response?.data?.error?.message ??
+                error.response?.data?.message ??
+                "대시보드 정보를 불러오지 못했습니다.",
+            );
+
+            if ([400, 401, 404].includes(error.response?.status)) {
+                navigate("/signin", { replace: true });
+            }
+        } finally {
+            setIsLoading(false);
+            endLoading();
+        }
+    };
+
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (emojiRef.current && !emojiRef.current.contains(event.target)) {
-                setIsEmojiOpen(false);
-                setIsEmojiMoreOpen(false);
-            }
-        };
+        if (!userId) {
+            navigate("/signin", { replace: true });
+            return;
+        }
 
-        const handleKeyDown = (event) => {
-            if (event.key === "Escape") {
-                setIsEmojiOpen(false);
-                setIsEmojiMoreOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        document.addEventListener("keydown", handleKeyDown);
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("keydown", handleKeyDown);
-        };
+        handleLoad();
     }, []);
 
-    useEffect(() => {
-        const fetchMemberData = async () => {
-            try {
-                const countRes = await axios.get(`/study/${id}/members/count`);
-                setMemberCount(countRes.data ?? 0);
-
-                const membersRes = await axios.get(`/study/${id}/members`);
-                setMembers(membersRes.data ?? []);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        fetchMemberData();
-    }, [id]);
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        const fetchStudy = async () => {
-            setIsLoading(true);
-            setErrorMessage("");
-
-            try {
-                const response = await axios.get(`/study/${id}`, {
-                    signal: controller.signal,
-                });
-
-                const nextStudy = response.data?.data ?? response.data;
-
-                if (!nextStudy?.id) {
-                    throw new Error("스터디 정보를 불러오지 못했습니다.");
-                }
-
-                setStudy(nextStudy);
-                setEmoji(Array.isArray(nextStudy.emojis) ? nextStudy.emojis : []);
-            } catch (error) {
-                if (
-                    error.name === "CanceledError" ||
-                    error.name === "AbortError" ||
-                    error.code === "ERR_CANCELED"
-                ) {
-                    return;
-                }
-                setStudy(null);
-                setEmoji([]);
-                setErrorMessage(
-                    getStudyErrorMessage(error, "스터디 정보를 불러오지 못했습니다."),
-                );
-            } finally {
-                if (!controller.signal.aborted) {
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        fetchStudy();
-
-        return () => controller.abort();
-    }, [id]);
-
-    // 이모지 선택시 출력 확인
-    const handleEmojiClick = async (selectedEmoji) => {
-        try {
-            const response = await axios.post(`/study/${id}/emojis`, {
-                emoji: selectedEmoji,
-            });
-
-            const updatedEmoji = response.data?.data ?? response.data;
-
-            if (!updatedEmoji?.emoji) {
-                throw new Error("응원 이모지를 저장하지 못했습니다.");
+    useEffect(
+        () => () => {
+            if (studyCollapseTimerRef.current) {
+                window.clearTimeout(studyCollapseTimerRef.current);
             }
 
-            setEmoji((prevEmoji) => {
-                const alreadyExists = prevEmoji.some(
-                    (item) => item.emoji === updatedEmoji.emoji,
-                );
+            if (studyResizeFrameRef.current) {
+                window.cancelAnimationFrame(studyResizeFrameRef.current);
+            }
+        },
+        [],
+    );
 
-                if (alreadyExists) {
-                    return prevEmoji.map((item) =>
-                        item.emoji === updatedEmoji.emoji
-                            ? { ...item, ...updatedEmoji }
-                            : item,
-                    );
-                }
-
-                return [...prevEmoji, updatedEmoji];
-            });
-            setIsEmojiOpen(false);
-            setIsEmojiMoreOpen(false);
-        } catch (error) {
-            showAlert(
-                getStudyErrorMessage(error, "응원 이모지를 저장하지 못했습니다."),
-            );
-        }
-    };
-
-    // 이모지 3개까지만 보여주고 나머지는 +N으로 표시
-    const visibleEmoji = emoji.slice(0, 3);
-    const hiddenEmoji = emoji.slice(3);
-
-    const handleOwnerNavigation = (path) => {
-        if (!study?.isOwner) {
-            showAlert("스터디 생성자만 이용할 수 있습니다.", "error");
+    const handleToggleStudies = () => {
+        if (isCollapsingStudies) {
             return;
         }
 
-        navigate(path);
-    };
-
-    const handleOpenDeleteModal = () => {
-        if (!study?.isOwner) {
-            showAlert("스터디 생성자만 삭제할 수 있습니다.", "error");
+        if (!showAllStudies) {
+            setShowAllStudies(true);
             return;
         }
 
-        setDeleteConfirmation("");
-        setDeleteErrorMessage("");
-        setIsDeleteModalOpen(true);
-    };
+        const animationDuration = window.matchMedia?.(
+            "(prefers-reduced-motion: reduce)",
+        ).matches
+            ? 0
+            : STUDY_TOGGLE_ANIMATION_MS;
 
-    const handleCloseDeleteModal = () => {
-        if (isDeleting) {
+        if (animationDuration === 0) {
+            setShowAllStudies(false);
             return;
         }
 
-        setIsDeleteModalOpen(false);
-        setDeleteConfirmation("");
-        setDeleteErrorMessage("");
-    };
-
-    const handleDeleteStudy = async () => {
-        if (deleteConfirmation !== study?.name || isDeleting) {
-            return;
-        }
-
-        setIsDeleting(true);
-        setDeleteErrorMessage("");
-
-        try {
-            await axios.delete(`/study/${id}`);
-            navigate("/");
-        } catch (error) {
-            setDeleteErrorMessage(
-                getStudyErrorMessage(error, "스터디를 삭제하지 못했습니다."),
-            );
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
-    const handleFavoriteChange = (studyId, nextIsFavorite) => {
-        setStudy((prevStudy) => {
-            if (!prevStudy || prevStudy.id !== studyId) {
-                return prevStudy;
-            }
-
-            return {
-                ...prevStudy,
-                isFavorite: nextIsFavorite,
-            };
-        });
-    };
-
-    const handleJoin = async () => {
-        try {
-            await axios.post(`/study/${id}/members`);
-            showAlert("스터디에 참여했습니다.");
-            window.location.reload();
-        } catch (error) {
-            showAlert(getStudyErrorMessage(error, "참여에 실패했습니다."));
-        }
-    };
-
-    const handleLeaveStudy = async () => {
-        try {
-            await axios.delete(`/study/${id}/members`);
-            showAlert("스터디에서 나갔습니다.");
-            navigate("/");
-        } catch (error) {
-            showAlert(getStudyErrorMessage(error, "나가기에 실패했습니다."));
-        }
-    };
-
-    const handleToggleRecruiting = async () => {
-        try {
-            await axios.patch(`/study/${id}/recruiting`, {
-                isRecruiting: !study.isRecruiting,
-            });
-            showAlert(
-                study.isRecruiting ? "모집을 마감했습니다." : "모집을 재개했습니다.",
-            );
-            window.location.reload();
-        } catch (error) {
-            showAlert(getStudyErrorMessage(error, "처리에 실패했습니다."));
-        }
-    };
-
-    if (isLoading) {
-        return (
-            <main>
-                <AlertMessage message="스터디 정보를 불러오는 중입니다." />
-            </main>
+        const studySection = studySectionRef.current;
+        const studyCards = studySection?.querySelectorAll(
+            ".dashboard_study_card",
         );
-    }
+        const lastVisibleCard =
+            studyCards?.[DEFAULT_VISIBLE_STUDY_COUNT - 1] ?? null;
 
-    if (errorMessage || !study) {
-        return (
-            <main>
-                <AlertMessage
-                    message={errorMessage || "스터디를 찾을 수 없습니다."}
-                    variant="error"
-                    onClose={() => setErrorMessage("")}
-                />
-            </main>
-        );
-    }
+        if (studySection && lastVisibleCard) {
+            const sectionRect = studySection.getBoundingClientRect();
+            const lastVisibleCardRect = lastVisibleCard.getBoundingClientRect();
+            const sectionStyle = window.getComputedStyle(studySection);
+            const paddingBottom = Number.parseFloat(sectionStyle.paddingBottom) || 0;
+            const borderBottom =
+                Number.parseFloat(sectionStyle.borderBottomWidth) || 0;
+            const collapsedHeight = Math.ceil(
+                lastVisibleCardRect.bottom -
+                sectionRect.top +
+                paddingBottom +
+                borderBottom,
+            );
 
-    const handleShare = async () => {
-        try {
-            await navigator.clipboard.writeText(window.location.href);
-            showAlert("주소복사완료");
-        } catch (error) {
-            console.log(error);
-            showAlert("주소복사실패");
+            setStudySectionHeight(Math.ceil(sectionRect.height));
+            studyResizeFrameRef.current = window.requestAnimationFrame(() => {
+                setStudySectionHeight(collapsedHeight);
+                studyResizeFrameRef.current = null;
+            });
         }
+
+        setIsCollapsingStudies(true);
+        studyCollapseTimerRef.current = window.setTimeout(() => {
+            setShowAllStudies(false);
+            setIsCollapsingStudies(false);
+            setStudySectionHeight(null);
+            studyCollapseTimerRef.current = null;
+        }, animationDuration);
     };
-    const studyDetailBackgroundStyle = getStudyBackgroundStyle(study);
+
+    const hasHiddenStudies = studies.length > DEFAULT_VISIBLE_STUDY_COUNT;
+    const visibleStudies = showAllStudies
+        ? studies
+        : studies.slice(0, DEFAULT_VISIBLE_STUDY_COUNT);
 
     return (
-        <section>
+        <section className="dashboard_page">
             <div className="inner">
-                <section className="study-detail-section card_container">
-                    <div
-                        className="study-detail-background-layer"
-                        style={studyDetailBackgroundStyle}
-                        aria-hidden="true"
-                    />
+                <div className="card_container">
+                    <div className="container_title">
+                        <span>
+                            <span className="bold green">
+                                {currentUser?.nickname ?? ""}
+                            </span>{" "}
+                            님의{" "}
+                            <span className="bold">대시보드</span>
+                        </span>
+                    </div>
 
-                    <div className="study-detail-content">
-                        {study.isOwner && (
-                            <nav
-                                className="focus-page__navigation"
-                                aria-label="스터디 페이지 이동"
-                            >
-                                <button
-                                    type="button"
-                                    className="focus-page__navigation-button"
-                                    onClick={() => handleOwnerNavigation(`/study/${id}/habit`)}
-                                >
-                                    <span>오늘의 습관</span>
-
-                                    <img
-                                        className="focus-page__navigation-icon"
-                                        src={arrowRightIcon}
-                                        alt=""
-                                    />
-                                </button>
-
-                                <button
-                                    type="button"
-                                    className="focus-page__navigation-button"
-                                    onClick={() => handleOwnerNavigation(`/study/${id}/focus`)}
-                                >
-                                    <span>오늘의 집중</span>
-
-                                    <img
-                                        className="focus-page__navigation-icon"
-                                        src={arrowRightIcon}
-                                        alt=""
-                                    />
-                                </button>
-                            </nav>
-                        )}
-
-                        <div className="study-detail-secondary-actions">
-                            <div className="study-detail-point-summary">
-                                <PointSummary point={study.point} variant="detail" />
-                            </div>
-
-                            <div className="study-menu-buttons">
-                                {study.isOwner ? (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleOwnerNavigation(`/study/${id}/edit`)}
-                                        >
-                                            수정하기
-                                        </button>
-                                        <span className="dec_line">|</span>
-
-                                        <button
-                                            className="delete"
-                                            type="button"
-                                            onClick={handleOpenDeleteModal}
-                                        >
-                                            삭제하기
-                                        </button>
-                                        <span className="dec_line">|</span>
-
-                                        <button type="button" onClick={handleToggleRecruiting}>
-                                            {study.isRecruiting ? "모집 마감" : "모집 재개"}
-                                        </button>
-                                        <span className="dec_line">|</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button type="button" onClick={handleJoin}>
-                                            참여하기
-                                        </button>
-                                        <span className="dec_line">|</span>
-                                    </>
-                                )}
-                                <button type="button" onClick={handleShare}>
-                                    공유하기
-                                </button>
-                            </div>
+                    <div className="card_container inner_container">
+                        <div className="container_title dec">
+                            <span>오늘의 현황</span>
                         </div>
 
-                        <div className="emoji_line">
-                            <div
-                                className="emoji-container"
-                                ref={emojiRef}
-                                style={{ marginBottom: "24px" }}
-                            >
-                                {/* 화면에 기본으로 보여줄 이모지 3개 */}
-                                {visibleEmoji.map((item) => (
-                                    <button
-                                        type="button"
-                                        key={item.emoji}
-                                        className="emoji-item"
-                                        onClick={() => handleEmojiClick(item.emoji)}
-                                    >
-                                        <span>{item.emoji}</span>
-                                        <span>{item.count}</span>
+                        <div className="card_wrap dashboard_card_wrap">
+                            {isLoading && <p>오늘의 현황을 불러오는 중입니다.</p>}
+
+                            {!isLoading && errorMessage && (
+                                <div className="dashboard_error">
+                                    <p>{errorMessage}</p>
+                                    <button type="button" onClick={handleLoad}>
+                                        다시 불러오기
                                     </button>
-                                ))}
+                                </div>
+                            )}
 
-                                {/* 숨겨진 이모지 목록 */}
-                                {hiddenEmoji.length > 0 && (
-                                    <div className="emoji-more-wrapper">
-                                        <button
-                                            type="button"
-                                            className="emoji-more-button"
-                                            onClick={() => {
-                                                setIsEmojiMoreOpen((prev) => !prev);
-                                                setIsEmojiOpen(false);
-                                            }}
-                                        >
-                                            +{hiddenEmoji.length}...
-                                        </button>
+                            {!isLoading && !errorMessage && todayStatus.length === 0 && (
+                                <p>오늘의 현황 데이터가 없습니다.</p>
+                            )}
 
-                                        {isEmojiMoreOpen && (
-                                            <div className="more-emoji-list">
-                                                {hiddenEmoji.map((item) => (
-                                                    <button
-                                                        type="button"
-                                                        key={item.emoji}
-                                                        className="emoji-item"
-                                                        onClick={() => {
-                                                            handleEmojiClick(item.emoji);
-                                                            setIsEmojiOpen(false);
-                                                            setIsEmojiMoreOpen(false);
-                                                        }}
-                                                    >
-                                                        <span>{item.emoji}</span>
-                                                        <span>{item.count}</span>
-                                                    </button>
-                                                ))}
+                            {!isLoading &&
+                                !errorMessage &&
+                                todayStatus.map((status, index) => (
+                                    <div
+                                        className="card dashboard_card"
+                                        key={status?.id ?? index}
+                                    >
+                                        <div className="dashboard_card_header">
+                                            <div>
+                                                <div className="dashboard_card_label">
+                                                    {status?.label ?? ""}
+                                                </div>
+
+                                                <p className="dashboard_card_description">
+                                                    {status?.description ?? ""}
+                                                </p>
+                                            </div>
+
+                                            <div className="dashboard_card_icon">
+                                                {status?.icon ?? ""}
+                                            </div>
+                                        </div>
+
+                                        {status.type === "time" && (
+                                            <div className="dashboard_card_value">
+                                                <strong>{status.hour}</strong>
+                                                <span>시간</span>
+                                                <strong>{status.minute}</strong>
+                                                <span>분</span>
                                             </div>
                                         )}
-                                    </div>
-                                )}
 
-                                {/* 이모지 추가 */}
-                                <div
-                                    className={`emoji-add-wrapper${isEmojiOpen ? " is-open" : ""}`}
-                                >
-                                    <button
-                                        type="button"
-                                        className="emoji-add-button"
-                                        aria-label="이모지 추가"
-                                        onClick={() => {
-                                            setIsEmojiOpen((prev) => !prev);
-                                            setIsEmojiMoreOpen(false);
-                                        }}
-                                    >
-                                        <img
-                                            className="emoji-add-icon"
-                                            src={plusIcon}
-                                            alt=""
-                                            aria-hidden="true"
-                                        />
-                                    </button>
+                                        {status.type === "progress" && (
+                                            <>
+                                                <div className="dashboard_card_value">
+                                                    <strong>{status.current}</strong>
 
-                                    {isEmojiOpen && (
-                                        <div className="emoji-picker">
-                                            <EmojiPicker
-                                                onEmojiClick={(emojiData) => {
-                                                    handleEmojiClick(emojiData.emoji);
-                                                    // setIsEmojiOpen(false);
-                                                    // setIsEmojiMoreOpen(true);
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                                                    <span className="dashboard_value_total">
+                                                        / {status.total}개
+                                                    </span>
+                                                </div>
 
-                        <div className="container_title">
-                            <div
-                                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                            >
-                                <div className="study-detail-title">
-                                    <span>{study.nickname}</span>
-                                    <span>의</span>
-                                    <span>{study.name}</span>
-                                </div>
+                                                <div className="dashboard_progress">
+                                                    <div
+                                                        className="dashboard_progress_bar"
+                                                        style={{
+                                                            width: `${Number(status?.progress ?? 0)}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
 
-                                <div>
-                                    <button
-                                        type="button"
-                                        className="focus-page__navigation-button"
-                                        onClick={() => setIsMemberModalOpen(true)}
-                                    >
-                                        <span>멤버 목록</span>
-                                        <span style={{ marginLeft: "8px" }}>{memberCount}/{study.maxMembers}</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div>
-                                {isMemberModalOpen && (
-                                    <div
-                                        tabIndex={-1}
-                                        onClick={() => setIsMemberModalOpen(false)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Escape") setIsMemberModalOpen(false);
-                                        }}
-                                        style={{
-                                            position: "fixed",
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            background: "rgba(0,0,0,0.5)",
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            zIndex: 1000,
-                                        }}
-                                    >
-                                        <div
-                                            onClick={(e) => e.stopPropagation()}
-                                            style={{
-                                                background: "white",
-                                                padding: "24px",
-                                                width: "340px",
-                                                borderRadius: "16px",
-                                                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <h3 style={{ margin: 0 }}>참여자 목록</h3>
-                                                {!study.isOwner &&
-                                                    members.some(
-                                                        (member) => member.userId === currentUserId,
-                                                    ) && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleLeaveStudy}
-                                                            style={{
-                                                                color: "red",
-                                                                background: "none",
-                                                                border: "1px solid red",
-                                                                borderRadius: "8px",
-                                                                cursor: "pointer",
-                                                                fontSize: "14px",
-                                                                padding: "6px 14px",
-                                                            }}
-                                                        >
-                                                            나가기
-                                                        </button>
-                                                    )}
+                                        {status.type === "streak" && (
+                                            <div className="dashboard_card_value">
+                                                <strong>{status.value}</strong>
+                                                <span>일째</span>
                                             </div>
-                                            <ul style={{ listStyle: "none", padding: 0 }}>
-                                                {[...members]
-                                                    .sort((a, b) =>
-                                                        a.role === "HOST" ? -1 : b.role === "HOST" ? 1 : 0,
-                                                    )
-                                                    .map((member) => (
-                                                        <li
-                                                            key={member.id}
-                                                            style={{ padding: "6px 0", fontSize: "14px" }}
-                                                        >
-                                                            {member.role === "HOST" ? "👑 " : ""}
-                                                            {member.user.nickname}
-                                                        </li>
-                                                    ))}
-                                            </ul>
+                                        )}
+
+                                        <div className="dashboard_card_footer">
+                                            <span>{status.footerLabel}</span>
+
+                                            <strong className={status.footerClassName || ""}>
+                                                {status.footerValue}
+                                            </strong>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                            <FavoriteButton
-                                studyId={study.id}
-                                isFavorite={study.isFavorite ?? false}
-                                onFavoriteChange={handleFavoriteChange}
-                            />
-                        </div>
-
-                        <div>
-                            <span
-                                style={{
-                                    fontSize: "22px",
-                                    color: "#000000",
-                                    fontWeight: "300",
-                                }}
-                            >
-                                소개
-                            </span>
-                            <p
-                                style={{
-                                    display: "block",
-                                    margin: "8px 0 24px",
-                                    fontSize: "18px",
-                                    color: "#000000",
-                                }}
-                            >
-                                {study.description}
-                            </p>
+                                ))}
                         </div>
                     </div>
 
-                    <WeeklyHabitRecordTable studyId={id} />
-                </section>
+                    <div
+                        ref={studySectionRef}
+                        className={`card_container inner_container dashboard_study_section${isCollapsingStudies ? " is-collapsing" : ""
+                            }`}
+                        style={
+                            studySectionHeight === null
+                                ? undefined
+                                : { height: studySectionHeight }
+                        }
+                    >
+                        <div className="container_title dec">
+                            <span>진행 중인 스터디</span>
 
-                {isDeleteModalOpen && (
-                    <StudyDeleteModal
-                        studyName={study.name}
-                        confirmation={deleteConfirmation}
-                        errorMessage={deleteErrorMessage}
-                        isDeleting={isDeleting}
-                        onConfirmationChange={(value) => {
-                            setDeleteConfirmation(value);
-                            setDeleteErrorMessage("");
-                        }}
-                        onCancel={handleCloseDeleteModal}
-                        onConfirm={handleDeleteStudy}
-                    />
-                )}
+                            {hasHiddenStudies && (
+                                <button
+                                    type="button"
+                                    className="dashboard_more_link"
+                                    aria-controls="dashboard-study-grid"
+                                    aria-expanded={showAllStudies}
+                                    disabled={isCollapsingStudies}
+                                    onClick={handleToggleStudies}
+                                >
+                                    {showAllStudies ? "접기" : "전체 보기"}
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="dashboard_study_grid" id="dashboard-study-grid">
+                            {!isLoading && studies.length === 0 && (
+                                <p>진행 중인 스터디가 없습니다.</p>
+                            )}
+
+                            {visibleStudies.map((study, index) => (
+                                <Link
+                                    to={`/study/${study.studyId}`}
+                                    className={`card dashboard_card dashboard_study_card${index >= DEFAULT_VISIBLE_STUDY_COUNT
+                                        ? isCollapsingStudies
+                                            ? " dashboard_study_card--hiding"
+                                            : " dashboard_study_card--revealed"
+                                        : ""
+                                        }`}
+                                    key={study.studyId}
+                                >
+                                    <div className="dashboard_card_header">
+                                        <div>
+                                            <div className="dashboard_card_label">{study.name}</div>
+
+                                            <p className="dashboard_card_description">
+                                                {study.description ?? ""}
+                                            </p>
+                                        </div>
+
+                                        <div className="dashboard_card_icon">📚</div>
+                                    </div>
+
+                                    <div className="dashboard_study_summary">
+                                        <span>오늘의 습관</span>
+
+                                        <strong>
+                                            {study.completedHabit} / {study.totalHabit}
+                                        </strong>
+                                    </div>
+
+                                    <div className="dashboard_progress">
+                                        <div
+                                            className="dashboard_progress_bar"
+                                            style={{ width: `${Number(study.progress ?? 0)}%` }}
+                                        />
+                                    </div>
+
+                                    <div className="dashboard_card_footer">
+                                        <span>오늘의 달성률</span>
+                                        <strong>{Number(study.progress ?? 0)}%</strong>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="card_container dashboard_activity_container inner_container">
+                        <div className="container_title">
+                            <span className="bold">활동 요약</span>
+                        </div>
+
+                        <div className="dashboard_activity_grid">
+                            <div className="card dashboard_card dashboard_activity_card dashboard_weekly_card">
+                                <div className="dashboard_card_header">
+                                    <div>
+                                        <div className="dashboard_card_label">이번 주 집중</div>
+
+                                        <p className="dashboard_card_description">
+                                            요일별 집중 시간을 확인해 보세요
+                                        </p>
+                                    </div>
+
+                                    <div className="dashboard_card_icon">📊</div>
+                                </div>
+
+                                <div className="dashboard_weekly_total">
+                                    <strong>
+                                        {weeklyFocusCard.hour ? weeklyFocusCard.hour : "00"}
+                                    </strong>
+                                    <span>
+                                        시간{" "}
+                                        {weeklyFocusCard.minute ? weeklyFocusCard.minute : "00"}분
+                                    </span>
+                                </div>
+
+                                <div className="dashboard_weekly_chart">
+                                    {isLoading && <p>집중 기록을 불러오는 중입니다.</p>}
+
+                                    {!isLoading && !errorMessage && weeklyFocus.length === 0 && (
+                                        <p>이번 주 집중 기록이 없습니다.</p>
+                                    )}
+
+                                    {!isLoading &&
+                                        !errorMessage &&
+                                        weeklyFocus.map((item, index) => {
+                                            const minutes = Number(item?.minutes ?? 0);
+                                            const barHeight =
+                                                maxFocusMinutes > 0
+                                                    ? (minutes / maxFocusMinutes) * 100
+                                                    : 0;
+
+                                            return (
+                                                <div
+                                                    className="dashboard_chart_item"
+                                                    key={item?.day ?? index}
+                                                >
+                                                    <div className="dashboard_chart_bar_wrap">
+                                                        <div
+                                                            className="dashboard_chart_bar"
+                                                            style={{ height: `${barHeight}%` }}
+                                                        />
+                                                    </div>
+
+                                                    <span>{item?.day ?? "-"}</span>
+                                                </div>
+                                            );
+                                        })}
+                                </div>
+
+                                <div className="dashboard_card_footer">
+                                    <span>지난주보다</span>
+                                    <strong className="dashboard_increase">
+                                        {weeklyFocusCard.footerValue}
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <RecentAchieveCard
+                                achievements={achievements}
+                                onOpenModal={() => setIsAchieveOpen(true)}
+                            />
+
+                            <div className="card dashboard_card dashboard_activity_card">
+                                <div className="dashboard_card_header">
+                                    <div>
+                                        <div className="dashboard_card_label">즐겨찾는 스터디</div>
+
+                                        <p className="dashboard_card_description">
+                                            자주 방문하는 스터디예요
+                                        </p>
+                                    </div>
+
+                                    <div className="dashboard_card_icon">⭐</div>
+                                </div>
+
+                                <div className="dashboard_favorite_list">
+                                    {favoriteStudies.map((study) => (
+                                        <Link
+                                            to={`/study/${study.id}`}
+                                            className="dashboard_favorite_item"
+                                            key={study.id}
+                                        >
+                                            <div>
+                                                <strong>{study.name}</strong>
+
+                                                <p>
+                                                    {study.description} · 참여자 {study.currentMembers}명
+                                                </p>
+                                            </div>
+
+                                            <span>›</span>
+                                        </Link>
+                                    ))}
+                                </div>
+
+                                <div className="dashboard_card_footer">
+                                    <span>즐겨찾기</span>
+                                    <strong>{favoriteTotalCount}개</strong>
+                                </div>
+                            </div>
+
+                            <div className="card dashboard_card dashboard_activity_card">
+                                <div className="dashboard_card_header">
+                                    <div>
+                                        <div className="dashboard_card_label">이번 주 목표</div>
+
+                                        <p className="dashboard_card_description">
+                                            {goalCard.description ?? "이번 주 목표를 설정해보세요"}
+                                        </p>
+                                    </div>
+
+                                    <div className="dashboard_card_icon">
+                                        {goalCard.icon ?? "🎯"}
+                                    </div>
+                                </div>
+
+                                <div className="dashboard_goal_value">
+                                    <strong>{Number(goalCard.progress ?? 0)}</strong>
+                                    <span>%</span>
+                                </div>
+
+                                <div className="dashboard_progress dashboard_goal_progress">
+                                    <div
+                                        className="dashboard_progress_bar"
+                                        style={{ width: `${Number(goalCard.progress ?? 0)}%` }}
+                                    />
+                                </div>
+
+                                <p className="dashboard_goal_description">
+                                    {goalCard.summaryText ??
+                                        goalCard.description ??
+                                        "이번 주 목표를 설정해보세요"}
+                                </p>
+
+                                <div className="dashboard_card_footer">
+                                    <span>{goalCard.footerLabel ?? "남은 목표"}</span>
+                                    <strong>{goalCard.footerValue ?? "-"}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+            {isAchieveOpen && (
+                <AchieveModal
+                    achievements={achievements}
+                    onClose={() => setIsAchieveOpen(false)}
+                />
+            )}
         </section>
     );
-};
+}
 
-export default StudyDetailPage;
+export default DashboardPage;

@@ -27,7 +27,7 @@ export const ACHIEVEMENTS = [
     icon: "🌳",
     name: "집중 만렙 나무",
     description: "포인트를 200P 이상 모았어요.",
-    requiredPoint: 100,
+    requiredPoint: 200,
   },
   {
     type: "FOREST_MASTER",

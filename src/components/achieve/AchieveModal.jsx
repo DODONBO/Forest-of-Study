@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
-import axios from "../../utils/axios";
-import { ACHIEVEMENTS } from "./achievements.js";
+import { useEffect } from "react";
 import "./achievements.css";
 
 
@@ -16,48 +14,8 @@ const formatDate = (value) => {
     return `${year}.${month}.${day}`;
 };
 
-export default function AchieveModal({ onClose }) {
-
-    const [rows, setRows] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState("");
-
-    useEffect(() => {
-        const handleLoad = async () => {
-            setIsLoading(true);
-            setErrorMessage("");
-
-            try {
-                const response = await axios.get("/achievements");
-                const data = response.data?.data ?? response.data ?? [];
-
-                setRows(Array.isArray(data) ? data : []);
-            } catch (error) {
-                console.error("업적 조회 실패:", error.response?.data ?? error);
-
-                setRows([]);
-                setErrorMessage(
-                    error.response?.data?.message ?? "업적을 불러오지 못했습니다.",
-                );
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        handleLoad();
-    }, []);
-
-    const merged = ACHIEVEMENTS.map((item) => {
-        const found = rows.find((row) => row.achievementType === item.type);
-
-        return {
-            ...item,
-            isAchieved: Boolean(found),
-            achievedAt: found?.achievedAt ?? null,
-        };
-    });
-
-    const achievedCount = merged.filter((item) => item.isAchieved).length;
+export default function AchieveModal({ achievements, onClose }) {
+    const { merged, achievedCount, isLoading, errorMessage } = achievements;
 
     //모달 밖 누르면 닫혀요
     const handleOverlayClick = (event) => {

@@ -10,7 +10,6 @@ import arrowRightIcon from '../assets/img/ic_arrow_right.svg';
 import { getStudyBackgroundStyle } from '../utils/studyBackground.js';
 import FocusTimeline from '../components/focus/FocusTimeline.jsx';
 import './TodayFocusPage.css';
-import useAlert from "../components/useAlert.js";
 
 const FOCUS_LOADING_FADE_DURATION = 400;
 
