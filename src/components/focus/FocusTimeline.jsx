@@ -3,7 +3,7 @@ import axios from '../../utils/axios.js';
 import './FocusTimeline.css';
 import AlertMessage from '../AlertMessage.jsx';
 
-export default function FocusTimeline({ studyId }) {
+export default function FocusTimeline({ studyId, refreshKey = 0 }) {
     const [scope, setScope] = useState('me');   // 토글용
     const [stats, setStats] = useState({ totalSeconds: 0, totalPoint: 0, sessions: [] });
 
@@ -38,7 +38,7 @@ export default function FocusTimeline({ studyId }) {
         }
 
         fetchSessionData();
-    }, [studyId, scope]);
+    }, [refreshKey, scope, studyId]);
 
     function getDateKey(startedAt) {
         return new Date(startedAt).toLocaleDateString('ko-KR');
